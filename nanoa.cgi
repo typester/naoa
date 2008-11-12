@@ -23,6 +23,11 @@ my %LOADED;
 BEGIN {
     %REQUIRED = ();
     %LOADED = ();
+    if ($ENV{MOD_PERL}) {
+	my $base_dir = $ENV{SCRIPT_FILENAME};
+	$base_dir =~ s|/[^/]*$||;
+	chdir $base_dir;
+    }
 };
 
 sub new {
