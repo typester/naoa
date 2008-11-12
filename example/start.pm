@@ -1,4 +1,4 @@
-package example;
+package example::start;
 
 use strict;
 use warnings;
@@ -8,8 +8,8 @@ use base qw/NanoA/;
 sub run {
     my $self = shift;
     return << 'EOT';
-<a href="example/user?id=kazuho">kazuho</a>
-<a href="example/mojo?user=hoge">hoge</a>
+<a href="./user?id=kazuho">kazuho</a>
+<a href="./mojo?user=hoge">hoge</a>
 EOT
     ;
 }
