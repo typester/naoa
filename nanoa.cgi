@@ -17,6 +17,14 @@ package NanoA;
 use strict;
 use warnings;
 
+my %REQUIRED;
+my %LOADED;
+
+BEGIN {
+    %REQUIRED = ();
+    %LOADED = ();
+};
+
 sub new {
     my ($klass, $config) = @_;
     bless {
@@ -117,16 +125,12 @@ sub print_header {
     print "\n";
 }
 
-my %REQUIRED;
-
 sub require_once {
     my $path = shift;
     return if $REQUIRED{$path};
     require $path;
     $REQUIRED{$path} = 1;
 }
-
-my %LOADED;
 
 sub load_once {
     my ($path, $mark_path) = @_;
@@ -260,14 +264,9 @@ sub __load {
     $module;
 }
 
-my $mt_loaded;
-
 sub __compile {
     my ($path, $module) = @_;
-    unless ($mt_loaded) {
-        NanoA::require_once("Mojo/Template.pm");
-        $mt_loaded = 1;
-    }
+    NanoA::require_once("Mojo/Template.pm");
     my $mt = Mojo::Template->new;
     $mt->parse(__read_file("$path.mt"));
     $mt->build();
