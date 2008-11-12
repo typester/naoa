@@ -77,6 +77,8 @@ sub dispatch {
     
     my $handler_path = $opts->{prefix} . ($q->path_info || '/');
     $handler_path =~ s{\.\.}{}g;
+    $handler_path = camelize($handler_path)
+        if $opts->{camelize};
     
     my $handler_klass = $klass->load_handler($opts, $handler_path)
         || $klass->load_handler($opts, $klass->not_found);
@@ -104,6 +106,7 @@ sub load_handler {
     
     foreach my $loader (
         ($opts->{loaders} ? @{$opts->{loaders}} : ()),
+        \&load_mojo_template,
         \&load_pm,
     ) {
         $handler_klass = $loader->($klass, $opts, $path)
@@ -116,8 +119,6 @@ sub load_handler {
 sub load_pm {
     my ($klass, $opts, $path) = @_;
     $path =~ s{/+$}{};
-    $path = camelize($path)
-        if $opts->{camelize};
     local $@;
     eval {
         # should have a different invocation model for mod_perl and fastcgi
@@ -131,6 +132,29 @@ sub load_pm {
     return
         if $@ =~ /^Can't locate /;
     die $@;
+}
+
+sub load_mojo_template {
+    my ($klass, $opts, $path) = @_;
+    $path =~ s{/+$}{};
+    return
+        unless -e "$path.mt";
+    my $module = $path;
+    $module =~ s{/}{::};
+    local $@;
+    eval << "EOT";
+use Mojo::Template;
+package $module;
+use base qw(NanoA);
+sub run {
+    my \$self = shift;
+    Mojo::Template->new->render_file("$path.mt", \$self);
+}
+1;
+EOT
+;
+    die $@ if $@;
+    $module;
 }
 
 sub not_found {
