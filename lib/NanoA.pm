@@ -95,9 +95,11 @@ sub build_query {
 
 sub load_handler {
     my ($klass, $opts, $q) = @_;
-    my $module = $opts->{'prefix'} . ($q->path_info || '/');
+    my $module = $opts->{prefix} . ($q->path_info || '/');
     $module =~ s{\.\.}{}g;
     $module =~ s{/+$}{};
+    $module = camelize($module)
+        if $opts->{camelize};
     local $@;
     eval {
         # should have a different invocation model for mod_perl and fastcgi
@@ -114,6 +116,12 @@ sub load_handler {
 sub not_found {
     my ($klass, $opts) = @_;
     $opts->{not_found} || 'NanoA/NotFound';
+}
+
+sub camelize {
+    # copied from String::CamelCase by YAMANSHINA Hio
+    my $s = shift;
+    join('', map{ ucfirst $_ } split(/(?<=[A-Za-z])_(?=[A-Za-z])|\b/, $s));
 }
 
 1;
