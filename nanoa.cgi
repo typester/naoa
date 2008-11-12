@@ -74,6 +74,14 @@ sub redirect {
     );
 }
 
+sub render {
+    my ($self, $path) = @_;
+    my $module = NanoA::Mojo::Template::__load(
+	$self->config,
+	$self->config->{prefix} . "/$path");
+    $module->run_as($self);
+}
+
 sub config {
     my $self = shift;
     return $self->{config}->{$_[0]}
@@ -230,12 +238,6 @@ use strict;
 use warnings;
 
 use base qw(NanoA);
-
-sub include {
-    my ($app, $path) = @_;
-    my $module = __load($app->config, $app->config->{prefix} . "/$path");
-    $module->run_as($app);
-}
 
 sub __load {
     my ($config, $path) = @_;

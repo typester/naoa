@@ -1,6 +1,6 @@
 % my $pi = $app->query->path_info;
-% return $app->include('NanoA/AppList') unless $pi;
+% return $app->render('NanoA/AppList') unless $pi;
 <% $app->header_add(-status => 404); %>
-<%= $app->include('NanoA/header') %>
+<%= $app->render('NanoA/header') %>
 Not Found.  The list of installed applications can be found: <a href=".">here</a>.
-<%= $app->include('NanoA/footer') %>
+<%= $app->render('NanoA/footer') %>
