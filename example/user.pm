@@ -1,4 +1,4 @@
-package MyApp::user;
+package example::user;
 
 use strict;
 use warnings;

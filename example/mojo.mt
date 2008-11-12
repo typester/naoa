@@ -5,6 +5,6 @@
 <body>
 Hello to <%= $app->query->param('user') || '' %>.
 <hr>
-<%= $app->include('copyright') %>
+<%= $app->include('example/copyright') %>
 </body>
 </html>
