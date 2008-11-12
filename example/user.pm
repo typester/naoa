@@ -7,14 +7,7 @@ use base qw/NanoA/;
 
 sub run {
     my $self = shift;
-    my $name = $self->query->param('id');
-    $self->header_add(
-        -type => 'text/plain',
-    );
-    return << "EOT";
-You are $name
-EOT
-    ;
+    'You are ' . h($self->query->param('id') || 'nanashi');
 }
 
 1;

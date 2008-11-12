@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 if ($ENV{MOD_PERL}) {
     my $base_dir = $ENV{SCRIPT_FILENAME};
@@ -30,6 +31,12 @@ BEGIN {
     %REQUIRED = ();
     %LOADED = ();
 };
+
+sub import {
+    no strict 'refs';
+    my $caller = caller;
+    print STDERR "Hmm: $caller\n";
+}
 
 sub new {
     my ($klass, $config) = @_;
@@ -94,6 +101,16 @@ sub render {
 	$self->config,
 	$self->config->{prefix} . "/$path");
     $module->run_as($self);
+}
+
+sub h {
+    my $str = shift;
+    $str =~ s/&/&amp;/g;
+    $str =~ s/>/&gt;/g;
+    $str =~ s/</&lt;/g;
+    $str =~ s/"/&quot;/g;
+    $str =~ s/'/&#39;/g;
+    return $str;
 }
 
 sub nanoa_uri {
@@ -163,6 +180,14 @@ sub loaded {
     $LOADED{$path};
 }
 
+sub __insert_methods {
+    my $module = shift;
+    no strict 'refs';
+    print "Adding functions to $module\n";
+    *{"$module\::$_"} = \&{$_}
+        for qw(h);
+}
+
 package NanoA::Dispatch;
 
 use strict;
@@ -219,6 +244,7 @@ sub load_pm {
         or return;
     my $module = $path;
     $module =~ s{/}{::}g;
+    NanoA::__insert_methods($module);
     return $module;
 }
 
@@ -286,6 +312,10 @@ sub __compile {
     $code = << "EOT";
 package $module;
 use base qw(NanoA::Mojo::Template);
+BEGIN {
+    no strict 'refs';
+    *h = \\&{'NanoA::h'};
+};
 sub run {
     my \$app = shift;
     my \$code = $code;
