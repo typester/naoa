@@ -75,7 +75,12 @@ sub dispatch {
     
     my $q = $klass->build_query($opts);
     
-    my $handler = $klass->load_handler($opts, $q)->new($opts, $q);
+    my $handler_path = $opts->{prefix} . ($q->path_info || '/');
+    $handler_path =~ s{\.\.}{}g;
+    
+    my $handler_klass = $klass->load_handler($opts, $handler_path)
+        || $klass->load_handler($opts, $klass->not_found);
+    my $handler = $handler_klass->new($opts, $q);
     
     $handler->prerun();
     my $body = $handler->run();
@@ -94,23 +99,38 @@ sub build_query {
 }
 
 sub load_handler {
-    my ($klass, $opts, $q) = @_;
-    my $module = $opts->{prefix} . ($q->path_info || '/');
-    $module =~ s{\.\.}{}g;
-    $module =~ s{/+$}{};
-    $module = camelize($module)
+    my ($klass, $opts, $path) = @_;
+    my $handler_klass;
+    
+    foreach my $loader (
+        ($opts->{loaders} ? @{$opts->{loaders}} : ()),
+        \&load_pm,
+    ) {
+        $handler_klass = $loader->($klass, $opts, $path)
+            and last;
+    }
+    
+    $handler_klass;
+}
+
+sub load_pm {
+    my ($klass, $opts, $path) = @_;
+    $path =~ s{/+$}{};
+    $path = camelize($path)
         if $opts->{camelize};
     local $@;
     eval {
         # should have a different invocation model for mod_perl and fastcgi
-        require "$module.pm";
+        require "$path.pm";
     };
-    if ($@) {
-        $module = $klass->not_found($opts);
-        require "$module.pm";
+    unless ($@) {
+        my $module = $path;
+        $module =~ s{/}{::}g;
+        return $module;
     }
-    $module =~ s{/}{::}g;
-    $module;
+    return
+        if $@ =~ /^Can't locate /;
+    die $@;
 }
 
 sub not_found {
