@@ -35,7 +35,7 @@ sub query {
         my $cgi_klass = $self->config('cgi_klass') || 'CGI::Simple';
         my $cgi_path = $cgi_klass;
         $cgi_path =~ s{::}{/}g;
-        require "$cgi_path.pm";
+        require_once("$cgi_path.pm");
         $self->{query} = $cgi_klass->new;
     }
     $self->{query};
@@ -93,6 +93,15 @@ sub print_header {
         }
     }
     print "\n";
+}
+
+my %REQUIRED;
+
+sub require_once {
+    my $path = shift;
+    return if $REQUIRED{$path};
+    require $path;
+    $REQUIRED{$path} = 1;
 }
 
 my %LOADED;
@@ -235,7 +244,7 @@ my $mt_loaded;
 sub __compile {
     my ($path, $module) = @_;
     unless ($mt_loaded) {
-        require "Mojo/Template.pm";
+        NanoA::require_once("Mojo/Template.pm");
         $mt_loaded = 1;
     }
     my $mt = Mojo::Template->new;
