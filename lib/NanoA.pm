@@ -73,8 +73,12 @@ sub config {
 sub print_header {
     my $self = shift;
     my $headers = $self->{headers};
-    my $ct =
-        delete($headers->{-type}) . "; charset=" . delete($headers->{-charset});
+    my $ct = delete $headers->{-type};
+    if ($ct =~ /;\s*charset=/) {
+        delete $headers->{-charset};
+    } else {
+        $ct .= "; charset=" . delete $headers->{-charset};
+    }
     print "Content-Type: $ct\n";
     foreach my $n (sort keys %$headers) {
         my $v = $headers->{$n};
