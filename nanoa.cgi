@@ -98,8 +98,9 @@ sub redirect {
 sub render {
     my ($self, $path) = @_;
     my $module = NanoA::Mojo::Template::__load(
-	$self->config,
-	$self->config->{prefix} . "/$path");
+        $self->config,
+        $self->config->{prefix} . "/$path",
+    );
     $module->run_as($self);
 }
 
