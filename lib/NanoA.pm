@@ -94,7 +94,28 @@ sub print_header {
     }
     print "\n";
 }
-    
+
+my %LOADED;
+
+sub load_once {
+    my ($path, $mark_path) = @_;
+    $mark_path ||= $path;
+    return if $LOADED{$mark_path};
+    local $@;
+    do "$path"
+        or return;
+    die $@
+        if $@;
+    $LOADED{$mark_path} = 1;
+}
+
+sub loaded {
+    my $path = shift;
+    $LOADED{$path} = shift
+        if @_;
+    $LOADED{$path};
+}
+
 package NanoA::Dispatch;
 
 use strict;
@@ -143,18 +164,11 @@ sub load_pm {
     my ($klass, $config, $path) = @_;
     $path =~ s{/+$}{};
     local $@;
-    eval {
-        # should have a different invocation model for mod_perl and fastcgi
-        require "$path.pm";
-    };
-    unless ($@) {
-        my $module = $path;
-        $module =~ s{/}{::}g;
-        return $module;
-    }
-    return
-        if $@ =~ /^Can't locate /;
-    die $@;
+    NanoA::load_once("$path.pm")
+        or return;
+    my $module = $path;
+    $module =~ s{/}{::}g;
+    return $module;
 }
 
 sub load_mojo_template {
@@ -162,7 +176,7 @@ sub load_mojo_template {
     $path =~ s{/+$}{};
     return
         unless -e "$path.mt";
-    NanoA::Mojo::Template->__load($config, $path);
+    NanoA::Mojo::Template::__load($config, $path);
 }
 
 sub not_found {
@@ -190,38 +204,40 @@ use warnings;
 
 use base qw(NanoA);
 
-my %LOADED;
-
 sub include {
     my ($app, $path) = @_;
-    my $module = $app->__load($app->config, $app->config->{prefix} . "/$path");
+    my $module = __load($app->config, $app->config->{prefix} . "/$path");
     $module->run_as($app);
 }
 
 sub __load {
-    my ($self, $config, $path) = @_;
+    my ($config, $path) = @_;
     my $module = $path;
     $module =~ s{/}{::}g;
     return $module
-        if $LOADED{$path};
-    if ($self->__use_cache($config, $path)) {
-        require "$config->{mt_cache_dir}/$path.mtc";
-        $LOADED{$path} = 1;
+        if NanoA::loaded($path);
+    if (__use_cache($config, $path)) {
+        NanoA::load_once("$config->{mt_cache_dir}/$path.mtc", "$path.mt");
         return $module;
     }
-    my $code = $self->__compile($path, $module);
+    my $code = __compile($path, $module);
     local $@;
     eval $code;
     die $@ if $@;
-    $self->__update_cache($config, $path, $code)
+    __update_cache($config, $path, $code)
         if $config->{mt_cache_dir};
-    $LOADED{$path} = 1;
+    NanoA::loaded($path, 1);
     $module;
 }
 
+my $mt_loaded;
+
 sub __compile {
-    my ($self, $path, $module) = @_;
-    __load_once("Mojo/Template.pm");
+    my ($path, $module) = @_;
+    unless ($mt_loaded) {
+        require "Mojo/Template.pm";
+        $mt_loaded = 1;
+    }
     my $mt = Mojo::Template->new;
     $mt->parse(__read_file("$path.mt"));
     $mt->build();
@@ -244,14 +260,8 @@ EOT
     $code;
 }
 
-sub __load_once {
-    my $path = shift;
-    return if $LOADED{$path};
-    require "$path";
-}
-
 sub __update_cache {
-    my ($self, $config, $path, $code) = @_;
+    my ($config, $path, $code) = @_;
     my $cache_path = $config->{mt_cache_dir};
     foreach my $p (split '/', $path) {
         mkdir $cache_path;
@@ -265,7 +275,7 @@ sub __update_cache {
 }
 
 sub __use_cache {
-    my ($self, $config, $path) = @_;
+    my ($config, $path) = @_;
     return unless $config->{mt_cache_dir};
     my @orig = stat "$path.mt"
         or return;
