@@ -4,13 +4,13 @@ use strict;
 use warnings;
 
 sub new {
-    my ($klass, $config, $q) = @_;
+    my ($klass, $config) = @_;
     bless {
         config  => $config,
-        query   => $q,
+        query   => undef,
         headers => {
             -type    => 'text/html',
-            -charset => 'utf-8',
+            -charset => 'utf8',
         },
     }, $klass;
 }
@@ -31,8 +31,13 @@ sub postrun {
 
 sub query {
     my $self = shift;
-    $self->{query} = shift
-        if @_;
+    unless ($self->{query}) {
+        my $cgi_klass = $self->config('cgi_klass') || 'CGI::Simple';
+        my $cgi_path = $cgi_klass;
+        $cgi_path =~ s{::}{/}g;
+        require "$cgi_path.pm";
+        $self->{query} = $cgi_klass->new;
+    }
     $self->{query};
 }
 
@@ -65,6 +70,27 @@ sub config {
     $self->{config};
 }
 
+sub print_header {
+    my $self = shift;
+    my $headers = $self->{headers};
+    my $ct =
+        delete($headers->{-type}) . "; charset=" . delete($headers->{-charset});
+    print "Content-Type: $ct\n";
+    foreach my $n (sort keys %$headers) {
+        my $v = $headers->{$n};
+        $n =~ s/^-//;
+        $n =~ tr/_/-/;
+        if (ref $v eq 'ARRAY') {
+            foreach my $vv (@$v) {
+                print "$n: $v\n";
+            }
+        } else {
+            print "$n: $v\n";
+        }
+    }
+    print "\n";
+}
+    
 package NanoA::Dispatch;
 
 use strict;
@@ -76,31 +102,21 @@ sub dispatch {
     $config->{mt_cache_dir} = $klass->default_cache_dir($config)
         unless exists $config->{mt_cache_dir};
     
-    my $q = $klass->build_query($config);
-    
-    my $handler_path = $config->{prefix} . ($q->path_info || '/');
+    my $handler_path = $config->{prefix} . ($ENV{PATH_INFO} || '/');
     $handler_path =~ s{\.\.}{}g;
     $handler_path = camelize($handler_path)
         if $config->{camelize};
     
     my $handler_klass = $klass->load_handler($config, $handler_path)
         || $klass->load_handler($config, $klass->not_found);
-    my $handler = $handler_klass->new($config, $q);
+    my $handler = $handler_klass->new($config);
     
     $handler->prerun();
     my $body = $handler->run();
     $handler->postrun(\$body);
     
-    print $q->header(%{$handler->headers}), $body;
-}
-
-sub build_query {
-    my ($klass, $config) = @_;
-    my $cgi_klass = $config->{cgi_klass} || 'CGI::Simple';
-    my $cgi_path = $cgi_klass;
-    $cgi_path =~ s{::}{/}g;
-    require "$cgi_path.pm";
-    $cgi_klass->new;
+    $handler->print_header();
+    print $body;
 }
 
 sub load_handler {
