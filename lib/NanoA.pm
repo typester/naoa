@@ -140,6 +140,11 @@ sub load_mojo_template {
     return
         unless -e "$path.mt";
     my $module = $path;
+    require 'Mojo/Template.pm';
+    my $mt = Mojo::Template->new;
+    $mt->parse(read_file("$path.mt"));
+    $mt->build();
+    my $code = $mt->code();
     $module =~ s{/}{::};
     local $@;
     eval << "EOT";
@@ -147,8 +152,9 @@ use Mojo::Template;
 package $module;
 use base qw(NanoA);
 sub run {
-    my \$self = shift;
-    Mojo::Template->new->render_file("$path.mt", \$self);
+    my \$app = shift;
+    my \$code = $code;
+    \$code->();
 }
 1;
 EOT
@@ -166,6 +172,14 @@ sub camelize {
     # copied from String::CamelCase by YAMANSHINA Hio
     my $s = shift;
     join('', map{ ucfirst $_ } split(/(?<=[A-Za-z])_(?=[A-Za-z])|\b/, $s));
+}
+
+sub read_file {
+    my $fname = shift;
+    open my $fh, '<', $fname or die "cannot read $fname:$!";
+    my $s = do { local $/; join '', <$fh> };
+    close $fh;
+    $s;
 }
 
 1;

@@ -3,6 +3,6 @@
 <title>hello world</title>
 </head>
 <body>
-Hello to <%= $_[0]->query->param('user') || '' %>.
+Hello to <%= $app->query->param('user') || '' %>.
 </body>
 </html>
