@@ -4,5 +4,7 @@
 </head>
 <body>
 Hello to <%= $app->query->param('user') || '' %>.
+<hr>
+<%= $app->include('copyright') %>
 </body>
 </html>

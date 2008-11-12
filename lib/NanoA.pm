@@ -139,29 +139,7 @@ sub load_mojo_template {
     $path =~ s{/+$}{};
     return
         unless -e "$path.mt";
-    my $module = $path;
-    $module =~ s{/}{::};
-    require 'Mojo/Template.pm';
-    my $mt = Mojo::Template->new;
-    $mt->parse(read_file("$path.mt"));
-    $mt->build();
-    my $code = $mt->code();
-    $code = << "EOT";
-use Mojo::Template;
-package $module;
-use base qw(NanoA);
-sub run {
-    my \$app = shift;
-    my \$code = $code;
-    \$code->();
-}
-1;
-EOT
-;
-    local $@;
-    eval $code;
-    die $@ if $@;
-    $module;
+    NanoA::Mojo::Template->__load($path);
 }
 
 sub not_found {
@@ -175,7 +153,61 @@ sub camelize {
     join('', map{ ucfirst $_ } split(/(?<=[A-Za-z])_(?=[A-Za-z])|\b/, $s));
 }
 
-sub read_file {
+package NanoA::Mojo::Template;
+
+use strict;
+use warnings;
+
+use base qw(NanoA);
+
+my $MOJO_LOADED;
+
+sub include {
+    my ($app, $path) = @_;
+    my $module = $app->__load($app->config->{prefix} . "/$path");
+    $module->__run_as($app);
+}
+
+sub __load {
+    my ($self, $path) = @_;
+    my ($module, $code) = $self->__compile($path);
+    local $@;
+    eval $code;
+    die $@ if $@;
+    $module;
+}
+
+sub __compile {
+    my ($self, $path) = @_;
+    my $module = $path;
+    $module =~ s{/}{::};
+    unless ($MOJO_LOADED) {
+        require 'Mojo/Template.pm';
+        $MOJO_LOADED = 1;
+    }
+    my $mt = Mojo::Template->new;
+    $mt->parse(__read_file("$path.mt"));
+    $mt->build();
+    my $code = $mt->code();
+    $code = << "EOT";
+package $module;
+use base qw(NanoA::Mojo::Template);
+sub run {
+    my \$app = shift;
+    my \$code = $code;
+    \$code->();
+}
+sub __run_as {
+    my (\$klass, \$app) = \@_;
+    run(\$app);
+}
+1;
+EOT
+;
+    ($module, $code);
+}
+
+sub __read_file {
     my $fname = shift;
     open my $fh, '<', $fname or die "cannot read $fname:$!";
     my $s = do { local $/; join '', <$fh> };
