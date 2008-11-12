@@ -140,14 +140,13 @@ sub load_mojo_template {
     return
         unless -e "$path.mt";
     my $module = $path;
+    $module =~ s{/}{::};
     require 'Mojo/Template.pm';
     my $mt = Mojo::Template->new;
     $mt->parse(read_file("$path.mt"));
     $mt->build();
     my $code = $mt->code();
-    $module =~ s{/}{::};
-    local $@;
-    eval << "EOT";
+    $code = << "EOT";
 use Mojo::Template;
 package $module;
 use base qw(NanoA);
@@ -159,6 +158,8 @@ sub run {
 1;
 EOT
 ;
+    local $@;
+    eval $code;
     die $@ if $@;
     $module;
 }
