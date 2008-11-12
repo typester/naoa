@@ -8,4 +8,8 @@ use NanoA;
 
 NanoA::Dispatch->dispatch({
     prefix => 'MyApp',
+    # prerun => sub {},
+    # postrun => sub {},
+    # dbh => DBI->connect(...),
+    # some_config => xyz,
 });
