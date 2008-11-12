@@ -73,6 +73,9 @@ use warnings;
 sub dispatch {
     my ($klass, $config) = @_;
     
+    $config->{mt_cache_dir} = $klass->default_cache_dir($config)
+        unless exists $config->{mt_cache_dir};
+    
     my $q = $klass->build_query($config);
     
     my $handler_path = $config->{prefix} . ($q->path_info || '/');
@@ -145,6 +148,13 @@ sub load_mojo_template {
 sub not_found {
     my ($klass, $config) = @_;
     $config->{not_found} || 'NanoA/NotFound';
+}
+
+sub default_cache_dir {
+    my ($klass, $config) = @_;
+    my $prefix = $config->{prefix};
+    $prefix =~ s|/|::|g;
+    "/tmp/$prefix.$>.mt_cache";
 }
 
 sub camelize {
