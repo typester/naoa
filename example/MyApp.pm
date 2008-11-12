@@ -7,7 +7,11 @@ use base qw/NanoA/;
 
 sub run {
     my $self = shift;
-    '<a href="index.cgi/user?id=kazuho">kazuho</a>';
+    return << 'EOT';
+<a href="index.cgi/user?id=kazuho">kazuho</a>
+<a href="index.cgi/mojo?user=hoge">hoge</a>
+EOT
+    ;
 }
 
 1;
