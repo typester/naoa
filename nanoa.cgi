@@ -156,7 +156,6 @@ sub dispatch {
     $handler_path =~ s{\.\.}{}g;
     $handler_path .= 'start'
 	if $handler_path =~ m|^[^/]+/$|;
-    print STDERR "path: $handler_path\n";
     $handler_path = camelize($handler_path)
         if $config->{camelize};
     

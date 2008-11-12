@@ -1,1 +1,5 @@
 DirectoryIndex nanoa.cgi
+<FilesMatch "(\.(pm|mt|conf)|~)$">
+    Deny from All
+    Order deny,allow
+</FilesMatch>
