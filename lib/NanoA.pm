@@ -160,8 +160,6 @@ use warnings;
 
 use base qw(NanoA);
 
-my $MOJO_LOADED;
-
 sub include {
     my ($app, $path) = @_;
     my $module = $app->__load($app->config->{prefix} . "/$path");
@@ -181,10 +179,7 @@ sub __compile {
     my ($self, $path) = @_;
     my $module = $path;
     $module =~ s{/}{::};
-    unless ($MOJO_LOADED) {
-        require 'Mojo/Template.pm';
-        $MOJO_LOADED = 1;
-    }
+    __load_once("Mojo/Template.pm");
     my $mt = Mojo::Template->new;
     $mt->parse(__read_file("$path.mt"));
     $mt->build();
@@ -205,6 +200,14 @@ sub __run_as {
 EOT
 ;
     ($module, $code);
+}
+
+my %LOADED;
+
+sub __load_once {
+    my $path = shift;
+    return if $LOADED{$path};
+    require "$path";
 }
 
 sub __read_file {
