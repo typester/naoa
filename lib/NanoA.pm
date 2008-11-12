@@ -71,18 +71,18 @@ use strict;
 use warnings;
 
 sub dispatch {
-    my ($klass, $opts) = @_;
+    my ($klass, $config) = @_;
     
-    my $q = $klass->build_query($opts);
+    my $q = $klass->build_query($config);
     
-    my $handler_path = $opts->{prefix} . ($q->path_info || '/');
+    my $handler_path = $config->{prefix} . ($q->path_info || '/');
     $handler_path =~ s{\.\.}{}g;
     $handler_path = camelize($handler_path)
-        if $opts->{camelize};
+        if $config->{camelize};
     
-    my $handler_klass = $klass->load_handler($opts, $handler_path)
-        || $klass->load_handler($opts, $klass->not_found);
-    my $handler = $handler_klass->new($opts, $q);
+    my $handler_klass = $klass->load_handler($config, $handler_path)
+        || $klass->load_handler($config, $klass->not_found);
+    my $handler = $handler_klass->new($config, $q);
     
     $handler->prerun();
     my $body = $handler->run();
@@ -92,8 +92,8 @@ sub dispatch {
 }
 
 sub build_query {
-    my ($klass, $opts) = @_;
-    my $cgi_klass = $opts->{cgi_klass} || 'CGI::Simple';
+    my ($klass, $config) = @_;
+    my $cgi_klass = $config->{cgi_klass} || 'CGI::Simple';
     my $cgi_path = $cgi_klass;
     $cgi_path =~ s{::}{/}g;
     require "$cgi_path.pm";
@@ -101,15 +101,15 @@ sub build_query {
 }
 
 sub load_handler {
-    my ($klass, $opts, $path) = @_;
+    my ($klass, $config, $path) = @_;
     my $handler_klass;
     
     foreach my $loader (
-        ($opts->{loaders} ? @{$opts->{loaders}} : ()),
+        ($config->{loaders} ? @{$config->{loaders}} : ()),
         \&load_mojo_template,
         \&load_pm,
     ) {
-        $handler_klass = $loader->($klass, $opts, $path)
+        $handler_klass = $loader->($klass, $config, $path)
             and last;
     }
     
@@ -117,7 +117,7 @@ sub load_handler {
 }
 
 sub load_pm {
-    my ($klass, $opts, $path) = @_;
+    my ($klass, $config, $path) = @_;
     $path =~ s{/+$}{};
     local $@;
     eval {
@@ -135,16 +135,16 @@ sub load_pm {
 }
 
 sub load_mojo_template {
-    my ($klass, $opts, $path) = @_;
+    my ($klass, $config, $path) = @_;
     $path =~ s{/+$}{};
     return
         unless -e "$path.mt";
-    NanoA::Mojo::Template->__load($path);
+    NanoA::Mojo::Template->__load($config, $path);
 }
 
 sub not_found {
-    my ($klass, $opts) = @_;
-    $opts->{not_found} || 'NanoA/NotFound';
+    my ($klass, $config) = @_;
+    $config->{not_found} || 'NanoA/NotFound';
 }
 
 sub camelize {
@@ -160,25 +160,37 @@ use warnings;
 
 use base qw(NanoA);
 
+my %LOADED;
+
 sub include {
     my ($app, $path) = @_;
-    my $module = $app->__load($app->config->{prefix} . "/$path");
+    my $module = $app->__load($app->config, $app->config->{prefix} . "/$path");
     $module->__run_as($app);
 }
 
 sub __load {
-    my ($self, $path) = @_;
-    my ($module, $code) = $self->__compile($path);
+    my ($self, $config, $path) = @_;
+    my $module = $path;
+    $module =~ s{/}{::}g;
+    return $module
+        if $LOADED{$path};
+    if ($self->__use_cache($config, $path)) {
+        require "$config->{mt_cache_dir}/$path.mtc";
+        $LOADED{$path} = 1;
+        return $module;
+    }
+    my $code = $self->__compile($path, $module);
     local $@;
     eval $code;
     die $@ if $@;
+    $self->__update_cache($config, $path, $code)
+        if $config->{mt_cache_dir};
+    $LOADED{$path} = 1;
     $module;
 }
 
 sub __compile {
-    my ($self, $path) = @_;
-    my $module = $path;
-    $module =~ s{/}{::};
+    my ($self, $path, $module) = @_;
     __load_once("Mojo/Template.pm");
     my $mt = Mojo::Template->new;
     $mt->parse(__read_file("$path.mt"));
@@ -199,15 +211,37 @@ sub __run_as {
 1;
 EOT
 ;
-    ($module, $code);
+    $code;
 }
-
-my %LOADED;
 
 sub __load_once {
     my $path = shift;
     return if $LOADED{$path};
     require "$path";
+}
+
+sub __update_cache {
+    my ($self, $config, $path, $code) = @_;
+    my $cache_path = $config->{mt_cache_dir};
+    foreach my $p (split '/', $path) {
+        mkdir $cache_path;
+        $cache_path .= "/$p";
+    }
+    $cache_path .= '.mtc';
+    open my $fh, '>', $cache_path
+        or die "failed to create cache file $cache_path";
+    print $fh $code;
+    close $fh;
+}
+
+sub __use_cache {
+    my ($self, $config, $path) = @_;
+    return unless $config->{mt_cache_dir};
+    my @orig = stat "$path.mt"
+        or return;
+    my @cached = stat "$config->{mt_cache_dir}/$path.mtc"
+        or return;
+    return $orig[9] < $cached[9];
 }
 
 sub __read_file {
