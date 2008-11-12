@@ -165,7 +165,7 @@ my %LOADED;
 sub include {
     my ($app, $path) = @_;
     my $module = $app->__load($app->config, $app->config->{prefix} . "/$path");
-    $module->__run_as($app);
+    $module->run_as($app);
 }
 
 sub __load {
@@ -204,7 +204,7 @@ sub run {
     my \$code = $code;
     \$code->();
 }
-sub __run_as {
+sub run_as {
     my (\$klass, \$app) = \@_;
     run(\$app);
 }
