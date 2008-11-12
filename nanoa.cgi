@@ -95,6 +95,10 @@ sub render {
     $module->run_as($self);
 }
 
+sub nanoa_uri {
+    $ENV{SCRIPT_NAME};
+}
+
 sub config {
     my $self = shift;
     return $self->{config}->{$_[0]}
@@ -142,11 +146,13 @@ sub load_once {
     $mark_path ||= $path;
     return if $LOADED{$mark_path};
     local $@;
-    do "$path"
-        or return;
+    if (do "$path") {
+	$LOADED{mark_path} = 1;
+	return 1;
+    }
     die $@
         if $@;
-    $LOADED{$mark_path} = 1;
+    undef;
 }
 
 sub loaded {
