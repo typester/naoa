@@ -7,8 +7,7 @@ use base qw/NanoA/;
 
 sub run {
     my $self = shift;
-    my $o = $self->render('example/template/start');
-    $o;
+    $self->render('example/template/start');
 }
 
 1;
