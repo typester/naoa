@@ -11,7 +11,23 @@ if ($ENV{MOD_PERL}) {
 }
 unshift @INC, 'extlib';
 
-NanoA::Dispatch->dispatch();
+do {
+    local $@;
+    local $SIG{__DIE__} = sub {
+	NanoA::load_once("NanoA/DebugScreen.pm");
+	NanoA::DebugScreen::build(@_);
+    };
+    eval {
+	NanoA::Dispatch->dispatch();
+    };
+    if ($@) {
+	if (ref $@ eq 'HASH') {
+	    NanoA::DebugScreen::output($@);
+	} else {
+	    die $@;
+	}
+    }
+};
 
 package NanoA;
 
