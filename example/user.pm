@@ -7,7 +7,7 @@ use base qw/NanoA/;
 
 sub run {
     my $self = shift;
-    'You are ' . h($self->query->param('id') || 'nanashi');
+    'You are ' . escape_html($self->query->param('id') || 'nanashi');
 }
 
 1;

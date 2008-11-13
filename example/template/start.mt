@@ -1,4 +1,4 @@
-<%= $app->render('example/template/header') %>
+<%=r $app->render('example/template/header') %>
 <p>
 This is NanoA exmaple application.  Thank you for installing.
 </p>
@@ -16,4 +16,4 @@ The other way is to only write a Mojo::Template file, which acts much like PHP. 
 <p>
 And finally, best wishes to you from <a href="http://labs.cybozu.co.jp/blog/kazuho/">Kazuho Oku</a>, developer of NanoA.
 </p>
-<%= $app->render('example/template/footer') %>
+<%=r $app->render('example/template/footer') %>

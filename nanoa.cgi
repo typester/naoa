@@ -9,6 +9,7 @@ if ($ENV{MOD_PERL}) {
     $base_dir =~ s|/[^/]*$||;
     chdir $base_dir;
 }
+unshift @INC, 'extlib';
 
 NanoA::Dispatch->dispatch();
 
@@ -84,11 +85,11 @@ sub redirect {
 
 sub render {
     my ($self, $path) = @_;
-    my $module = NanoA::Mojo::Template::__load($self->config, $path);
+    my $module = NanoA::TemplateLoader::__load($self->config, $path);
     $module->run_as($self);
 }
 
-sub h {
+sub escape_html {
     my $str = shift;
     $str =~ s/&/&amp;/g;
     $str =~ s/>/&gt;/g;
@@ -297,7 +298,7 @@ sub load_mojo_template {
     $path =~ s{/+$}{};
     return
         unless -e "$path.mt";
-    NanoA::Mojo::Template::__load($config, $path);
+    NanoA::TemplateLoader::__load($config, $path);
 }
 
 sub camelize {
@@ -309,7 +310,7 @@ sub camelize {
     );
 }
 
-package NanoA::Mojo::Template;
+package NanoA::TemplateLoader;
 
 use strict;
 use warnings;
@@ -339,22 +340,21 @@ sub __load {
 
 sub __compile {
     my ($path, $module) = @_;
-    NanoA::require_once("Mojo/Template.pm");
-    my $mt = Mojo::Template->new;
-    $mt->parse(__read_file("$path.mt"));
-    $mt->build();
-    my $code = $mt->code();
+    NanoA::require_once("MENTA/Template.pm");
+    my $t = MENTA::Template->new;
+    $t->parse(__read_file("$path.mt"));
+    $t->build();
+    my $code = $t->code();
     $code = << "EOT";
 package $module;
-use base qw(NanoA::Mojo::Template);
+use base qw(NanoA::TemplateLoader);
 BEGIN {
     no strict 'refs';
-    *h = \\&{'NanoA::h'};
+    *escape_html = \\&{'NanoA::escape_html'};
 };
 sub run {
     my \$app = shift;
-    my \$code = $code;
-    \$code->();
+    $code->();
 }
 sub run_as {
     my (\$klass, \$app) = \@_;

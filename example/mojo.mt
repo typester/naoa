@@ -1,10 +1,3 @@
-<html>
-<head>
-<title>hello world</title>
-</head>
-<body>
-Hello to <%= h($app->query->param('user') || '') %>.
-<hr>
-<%= $app->render('example/copyright') %>
-</body>
-</html>
+<%=r $app->render('example/template/header') %>
+Hello to <%= $app->query->param('user') || '' %>.
+<%=r $app->render('example/template/footer') %>
