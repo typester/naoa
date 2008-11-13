@@ -7,11 +7,7 @@ use base qw/NanoA/;
 
 sub run {
     my $self = shift;
-    return << 'EOT';
-<a href="./user?id=kazuho">kazuho</a>
-<a href="./mojo?user=hoge">hoge</a>
-EOT
-    ;
+    return $self->render('example/template/start');
 }
 
 1;
