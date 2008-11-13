@@ -6,12 +6,10 @@ This is NanoA exmaple application.  Thank you for installing.
 <p>
 There are two ways to write applications using NanoA.
 </p>
-<p>
-One is to write a controller using perl and render a template using MENTA::Template, which is based on Mojo::Template.  This page is generated as such, and the source code can be found <a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/start.pm">here</a>.
-</p>
-<p>
-The other way is to only write a MENTA::Template file, which acts much like PHP.  <a href="mojo?user=nanashisan">this page</a> is a good example (<a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/mojo.mt">source code</a>).
-</p>
+<ul>
+<li><a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/start.pm">source code of this page</a> (logic &amp; template style)</li>
+<li><a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/mojo.mt">PHP style source code</a> (can be executed directly: <a href="mojo?user=john">link</a>)</li>
+</ul>
 <p>
 Now comes with a shocking debug screen as well: <a href="debugscreen">see debug screen</a>.
 </p>
