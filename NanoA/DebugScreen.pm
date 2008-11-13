@@ -2,7 +2,6 @@ package NanoA::DebugScreen;
 
 use strict;
 use warnings;
-use utf8;
 
 # dead copy from MENTA
 
@@ -21,7 +20,7 @@ sub build {
                 my $start = $linenum - 3;
                 my $end   = $linenum + 3;
                 $start = $start < 1 ? 1 : $start;
-                open my $fh, '<:utf8', $file or die "エラー画面表示用に ${file} を開こうとしたのに開けません: $!";
+                open my $fh, '<', $file or die "cannot open $file";
                 my $cur_line = 0;
                 while ( my $line = <$fh> ) {
                     ++$cur_line;
@@ -65,7 +64,6 @@ sub output {
         $out .= qq{</ol><p style="text-align: right; color: black"><strong>Regards,<br>MENTA</strong></p>\n};
         $out;
     };
-    utf8::encode($body);
     print $body;
 }
 
