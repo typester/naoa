@@ -26,6 +26,7 @@ sub build {
                     ++$cur_line;
                     last if $cur_line > $end;
                     next if $cur_line < $start;
+                    $line =~ s|\t|        |g;
                     my @tag =
                         $cur_line == $linenum
                             ? (q{<b style="color: #000;background-color: #f99;">}, '</b>')
