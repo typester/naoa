@@ -99,7 +99,7 @@ sub h {
 }
 
 sub nanoa_uri {
-    $ENV{SCRIPT_NAME};
+    $ENV{SCRIPT_NAME} || '.';
 }
 
 sub config {
@@ -150,8 +150,8 @@ sub load_once {
     return if $LOADED{$mark_path};
     local $@;
     if (do "$path") {
-	$LOADED{mark_path} = 1;
-	return 1;
+        $LOADED{mark_path} = 1;
+        return 1;
     }
     die $@
         if $@;
@@ -173,6 +173,57 @@ sub __insert_methods {
         for qw(h);
 }
 
+package NanoA::config;
+
+use strict;
+use warnings;
+
+sub new {
+    my ($klass, $opts) = @_;
+    bless {
+        prerun       => undef,
+        postrun      => undef,
+        camelize     => undef,
+        loaders      => [
+            \&NanoA::Dispatch::load_mojo_template,
+            \&NanoA::Dispatch::load_pm,
+        ],
+        not_found    => 'NanoA/NotFound',
+        mt_cache_dir => "/tmp/nanoa.$>.mt_cache",
+        $opts ? %$opts : (),
+    }, $klass;
+}
+
+sub prerun {
+    my $self = shift;
+    $self->{prerun};
+}
+
+sub postrun {
+    my $self = shift;
+    $self->{postrun};
+}
+
+sub camelize {
+    my $self = shift;
+    $self->{camelize};
+}
+
+sub loaders {
+    my $self = shift;
+    $self->{loaders};
+}
+
+sub not_found {
+    my $self = shift;
+    $self->{not_found};
+}
+
+sub mt_cache_dir {
+    my $self = shift;
+    $self->{mt_cache_dir};
+}
+
 package NanoA::Dispatch;
 
 use strict;
@@ -187,15 +238,13 @@ sub dispatch {
         if $handler_path =~ m|^[^/]+/$|;
     
     # TODO: should load config here
-    my $config = {
-        mt_cache_dir => default_cache_dir(),
-    };
+    my $config = $klass->load_config($handler_path);
     
     $handler_path = camelize($handler_path)
-        if $config->{camelize};
+        if $config->camelize;
     
     my $handler_klass = $klass->load_handler($config, $handler_path)
-        || $klass->load_handler($config, $klass->not_found);
+        || $klass->load_handler($config, $config->not_found);
     my $handler = $handler_klass->new($config);
     
     $handler->prerun();
@@ -206,15 +255,24 @@ sub dispatch {
     print $body;
 }
 
+sub load_config {
+    my ($klass, $handler_path) = @_;
+    if ($handler_path =~ m|^(.*?)/|) {
+        my $config_path = "$1/config";
+        if (NanoA::load_once("$config_path.pm")) {
+            my $module = $config_path;
+            $module =~ s{/}{::}g;
+            return $module->new();
+        }
+    }
+    return "NanoA::config"->new();
+}
+
 sub load_handler {
     my ($klass, $config, $path) = @_;
     my $handler_klass;
     
-    foreach my $loader (
-        ($config->{loaders} ? @{$config->{loaders}} : ()),
-        \&load_mojo_template,
-        \&load_pm,
-    ) {
+    foreach my $loader (@{$config->loaders}) {
         $handler_klass = $loader->($klass, $config, $path)
             and last;
     }
@@ -242,15 +300,6 @@ sub load_mojo_template {
     NanoA::Mojo::Template::__load($config, $path);
 }
 
-sub not_found {
-    my ($klass, $config) = @_;
-    $config->{not_found} || 'NanoA/NotFound';
-}
-
-sub default_cache_dir {
-    "/tmp/nanoa.$>.mt_cache";
-}
-
 sub camelize {
     # originally copied from String::CamelCase by YAMANSHINA Hio
     my $s = shift;
@@ -275,7 +324,7 @@ sub __load {
     return $module
         if NanoA::loaded($path);
     if (__use_cache($config, $path)) {
-        NanoA::load_once("$config->{mt_cache_dir}/$path.mtc", "$path.mt");
+        NanoA::load_once($config->mt_cache_dir . "/$path.mtc", "$path.mt");
         return $module;
     }
     my $code = __compile($path, $module);
@@ -283,7 +332,7 @@ sub __load {
     eval $code;
     die $@ if $@;
     __update_cache($config, $path, $code)
-        if $config->{mt_cache_dir};
+        if $config->mt_cache_dir;
     NanoA::loaded($path, 1);
     $module;
 }
@@ -319,7 +368,7 @@ EOT
 
 sub __update_cache {
     my ($config, $path, $code) = @_;
-    my $cache_path = $config->{mt_cache_dir};
+    my $cache_path = $config->mt_cache_dir;
     foreach my $p (split '/', $path) {
         mkdir $cache_path;
         $cache_path .= "/$p";
@@ -333,10 +382,10 @@ sub __update_cache {
 
 sub __use_cache {
     my ($config, $path) = @_;
-    return unless $config->{mt_cache_dir};
+    return unless $config->mt_cache_dir;
     my @orig = stat "$path.mt"
         or return;
-    my @cached = stat "$config->{mt_cache_dir}/$path.mtc"
+    my @cached = stat $config->mt_cache_dir . "/$path.mtc"
         or return;
     return $orig[9] < $cached[9];
 }
