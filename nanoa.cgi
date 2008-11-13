@@ -10,14 +10,7 @@ if ($ENV{MOD_PERL}) {
     chdir $base_dir;
 }
 
-NanoA::Dispatch->dispatch({
-    # prefix       => '.',
-    # camelize     => 1,                  # camelize package names
-    # prerun       => sub {},             # prerun hook
-    # postrun      => sub {},             # postrun hook
-    # mt_cache_dir => '/tmp/mt.cache'     # template cache dir
-    # dbh          => DBI->connect(...),  # and your own properties
-});
+NanoA::Dispatch->dispatch();
 
 package NanoA;
 
@@ -31,12 +24,6 @@ BEGIN {
     %REQUIRED = ();
     %LOADED = ();
 };
-
-sub import {
-    no strict 'refs';
-    my $caller = caller;
-    print STDERR "Hmm: $caller\n";
-}
 
 sub new {
     my ($klass, $config) = @_;
@@ -97,10 +84,7 @@ sub redirect {
 
 sub render {
     my ($self, $path) = @_;
-    my $module = NanoA::Mojo::Template::__load(
-        $self->config,
-        $self->config->{prefix} . "/$path",
-    );
+    my $module = NanoA::Mojo::Template::__load($self->config, $path);
     $module->run_as($self);
 }
 
@@ -195,17 +179,18 @@ use strict;
 use warnings;
 
 sub dispatch {
-    my ($klass, $config) = @_;
+    my $klass = shift;
     
-    $config->{prefix} ||= '.';
-    $config->{mt_cache_dir} = $klass->default_cache_dir($config)
-        unless exists $config->{mt_cache_dir};
-    
-    my $handler_path = $config->{prefix} . ($ENV{PATH_INFO} || '/');
-    $handler_path =~ s{^\./}{};
+    my $handler_path = substr($ENV{PATH_INFO} || '/', 1);
     $handler_path =~ s{\.\.}{}g;
     $handler_path .= 'start'
-	if $handler_path =~ m|^[^/]+/$|;
+        if $handler_path =~ m|^[^/]+/$|;
+    
+    # TODO: should load config here
+    my $config = {
+        mt_cache_dir => default_cache_dir(),
+    };
+    
     $handler_path = camelize($handler_path)
         if $config->{camelize};
     
@@ -263,16 +248,16 @@ sub not_found {
 }
 
 sub default_cache_dir {
-    my ($klass, $config) = @_;
-    my $prefix = $config->{prefix};
-    $prefix =~ s|/|::|g;
-    "/tmp/nanoa.$prefix.$>.mt_cache";
+    "/tmp/nanoa.$>.mt_cache";
 }
 
 sub camelize {
-    # copied from String::CamelCase by YAMANSHINA Hio
+    # originally copied from String::CamelCase by YAMANSHINA Hio
     my $s = shift;
-    join('', map{ ucfirst $_ } split(/(?<=[A-Za-z])_(?=[A-Za-z])|\b/, $s));
+    lcfirst join(
+        '',
+        map{ ucfirst $_ } split(/(?<=[A-Za-z])_(?=[A-Za-z])|\b/, $s),
+    );
 }
 
 package NanoA::Mojo::Template;
