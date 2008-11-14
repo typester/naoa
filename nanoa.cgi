@@ -14,18 +14,18 @@ unshift @INC, 'extlib';
 do {
     local $@;
     local $SIG{__DIE__} = sub {
-	NanoA::load_once("NanoA/DebugScreen.pm");
-	NanoA::DebugScreen::build(@_);
+        NanoA::load_once("NanoA/DebugScreen.pm");
+        NanoA::DebugScreen::build(@_);
     };
     eval {
-	NanoA::Dispatch->dispatch();
+        NanoA::Dispatch->dispatch();
     };
     if ($@) {
-	if (ref $@ eq 'HASH') {
-	    NanoA::DebugScreen::output($@);
-	} else {
-	    die $@;
-	}
+        if (ref $@ eq 'HASH') {
+            NanoA::DebugScreen::output($@);
+        } else {
+            die $@;
+        }
     }
 };
 
@@ -116,7 +116,13 @@ sub escape_html {
 }
 
 sub nanoa_uri {
-    $ENV{SCRIPT_NAME} || '.';
+    $ENV{SCRIPT_NAME} || '/nanoa.cgi';
+}
+
+sub root_uri {
+    my $p = nanoa_uri();
+    $p =~ s|/[^/]+$||;
+    $p;
 }
 
 sub config {
@@ -167,7 +173,7 @@ sub load_once {
     return if $LOADED{$mark_path};
     local $@;
     if (do "$path") {
-        $LOADED{mark_path} = 1;
+        $LOADED{$mark_path} = 1;
         return 1;
     }
     die $@
@@ -180,6 +186,14 @@ sub loaded {
     $LOADED{$path} = shift
         if @_;
     $LOADED{$path};
+}
+
+sub read_file {
+    my $fname = shift;
+    open my $fh, '<', $fname or die "cannot read $fname:$!";
+    my $s = do { local $/; join '', <$fh> };
+    close $fh;
+    $s;
 }
 
 sub __insert_methods {
@@ -198,6 +212,8 @@ use warnings;
 sub new {
     my ($klass, $opts) = @_;
     bless {
+        %$opts,
+        global       => undef,
         prerun       => undef,
         postrun      => undef,
         camelize     => undef,
@@ -209,6 +225,24 @@ sub new {
         mt_cache_dir => "/tmp/nanoa.$>.mt_cache",
         $opts ? %$opts : (),
     }, $klass;
+}
+
+sub global_config {
+    my ($self, $n) = @_;
+    unless ($self->{global}) {
+        # TODO: load nanoa_config.pm
+        $self->{global} = {
+            dbi_uri => 'dbi:SQLite:dbname=var/%s.db',
+        };
+        require 'nanoa_config.pm'
+            if -e 'nanoa_config.pm';
+    }
+    $self->{global}->{$n};
+}
+
+sub app_name {
+    my $self = shift;
+    $self->{app_name};
 }
 
 sub prerun {
@@ -239,6 +273,17 @@ sub not_found {
 sub mt_cache_dir {
     my $self = shift;
     $self->{mt_cache_dir};
+}
+
+sub db {
+    my $self = shift;
+    unless ($self->{db}) {
+        NanoA::require_once('DBI.pm');
+        $self->{db} = DBI->connect(
+            sprintf($self->global_config('dbi_uri'), $self->app_name),
+        ) or die DBI->errstr;
+    }
+    $self->{db};
 }
 
 package NanoA::Dispatch;
@@ -274,15 +319,16 @@ sub dispatch {
 
 sub load_config {
     my ($klass, $handler_path) = @_;
+    my $app_name;
+    my $module_name = "NanoA::config";
     if ($handler_path =~ m|^(.*?)/|) {
-        my $config_path = "$1/config";
-        if (NanoA::load_once("$config_path.pm")) {
-            my $module = $config_path;
-            $module =~ s{/}{::}g;
-            return $module->new();
-        }
+        $app_name = $1;
+        $module_name = "$app_name\::config"
+            if NanoA::load_once("$app_name/config.pm");
     }
-    return "NanoA::config"->new();
+    return $module_name->new({
+        app_name => $app_name,
+    });
 }
 
 sub load_handler {
@@ -404,14 +450,6 @@ sub __use_cache {
     my @cached = stat $config->mt_cache_dir . "/$path.mtc"
         or return;
     return $orig[9] < $cached[9];
-}
-
-sub __read_file {
-    my $fname = shift;
-    open my $fh, '<', $fname or die "cannot read $fname:$!";
-    my $s = do { local $/; join '', <$fh> };
-    close $fh;
-    $s;
 }
 
 1;
