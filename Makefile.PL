@@ -34,7 +34,6 @@ my $appfiles = join(
 
 my $postamble = <<'EOM';
 NANOADIR = dist-cgi
-NANOACGI = nanoa.pl
 
 nanoadir: 
 	$(NOECHO)$(MKPATH) $(NANOADIR); \
@@ -51,7 +50,7 @@ nanoacgi: $(TO_INST_PM)
 		 } \
 		} \
 		print "1;\n";\
-	' $(NANOACGI) $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
+	' $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
