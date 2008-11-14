@@ -1,4 +1,5 @@
 <%=r $app->render('system/header') %>
+<h2>Installed Applications</h2>
 Thank you for installing NanoA.  Following applications are currently available.
 <ul>
 % foreach my $dir (<app/*/start.*>) {
