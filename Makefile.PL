@@ -28,10 +28,12 @@ my @copy_extlib = qw(
 );
 
 my @systmpl = File::Find::Rule->file()->name('*.mt')->in('system');
+my @examples = File::Find::Rule->file()->in('example');
 
 my $postamble = <<'EOM';
 NANOADIR = dist-cgi
 NANOATMPLDIR = $(NANOADIR)/system
+NANOAAPPDIR = $(NANOADIR)/app
 NANOACGI = system/nanoa.cgi
 
 nanoadir: 
@@ -53,7 +55,11 @@ nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
-nanoa: nanoadir nanoacgi nanoasystmpl nanoaextlib
+nanoaexample:
+	$(NOECHO) $(MKPATH) $(NANOAAPPDIR)
+	$(NOECHO) tar cf - example | (cd $(NANOAAPPDIR) && tar xf -)
+
+nanoa: nanoadir nanoacgi nanoasystmpl nanoaextlib nanoaexample
 	$(NOECHO)$(NOOP)
 
 nanoaextlib: 
@@ -70,7 +76,6 @@ EOM
 $postamble .= <<'EOM';
 
 nanoasystmpl:
-	$(ECHO) hoge
 	$(NOECHO) $(MKPATH) $(NANOATMPLDIR);
 EOM
 
