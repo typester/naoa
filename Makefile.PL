@@ -18,7 +18,12 @@ all_from('lib/NanoA.pm');
 # 使ってはいけません
 
 # ここでnanoaルールを定義
-postamble(<<'EOM');
+my @copy_extlib = qw(
+    extlib/CGI/Simple.pm
+    extlib/CGI/Simple/Cookie.pm
+    extlib/CGI/Simple/Util.pm
+);
+my $postamble = <<'EOM';
 NANOADIR = dist-cgi
 NANOATMPLDIR = $(NANOADIR)/template
 NANOACGI = template/nanoa.cgi
@@ -27,7 +32,7 @@ NANOATMPL = \
 	template/app_list.mt \
 	template/header.mt \
 	template/footer.mt
-E_EXTLIBS = \
+EXTLIBS = \
 	extlib/MENTA/Template.pm
 
 nanoadir: 
@@ -50,22 +55,26 @@ nanoacgi: $(TO_INST_PM)
 		 } \
 		} \
 		print "1;\n";\
-	' $(NANOACGI) $(TO_INST_PM) $(INCLUDE_EXTLIBS) > $(NANOADIR)/nanoa.cgi
+	' $(NANOACGI) $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
 nanoatmpl: $(NANOATMPL)
 	$(NOECHO)tar cf - $+ | (cd $(NANOADIR) && tar xf -)
 
-nanoaextlib: 
-	$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
-	$(CP) extlib/CGI/Simple.pm $(NANOADIR)/extlib/CGI/Simple.pm
-	$(CP) extlib/CGI/Simple/Cookie.pm $(NANOADIR)/extlib/CGI/Simple/Cookie.pm
-	$(CP) extlib/CGI/Simple/Util.pm $(NANOADIR)/extlib/CGI/Simple/Util.pm
-
 nanoa: nanoadir nanoacgi nanoatmpl nanoaextlib
 	$(NOECHO)$(NOOP)
 
+nanoaextlib: 
+	$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
 EOM
+
+foreach my $file (@copy_extlib) {
+    $postamble .= <<"EOM";
+	\$(CP) $file \$(NANOADIR)/$file
+EOM
+}
+
+postamble($postamble);
 
 WriteAll;
