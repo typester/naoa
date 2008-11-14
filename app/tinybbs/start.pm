@@ -11,9 +11,9 @@ sub run {
     
     # ignore errors, may exist
     $app->db->do(
-        'create table if not exists bbs (id integer not null primary key autoincrement,title varchar(255),body text)',
-    ) or die $app->db->errstr;
-    
+        'create table bbs (id integer not null primary key autoincrement,title varchar(255),body text)',
+    );
+
     if ($app->query->request_method eq 'POST') {
         # insert
         $app->db->do(
