@@ -27,6 +27,11 @@ NANOATMPL = \
 	template/app_list.mt \
 	template/header.mt \
 	template/footer.mt
+EXTLIBS = \
+	extlib/MENTA/Template.pm \
+	extlib/CGI/Simple.pm \
+	extlib/CGI/Simple/Cookie.pm \
+	extlib/CGI/Simple/Util.pm 
 
 nanoadir: 
 	$(NOECHO)if [ ! -d $(NANOADIR) ]; then \
@@ -41,10 +46,14 @@ nanoacgi: $(TO_INST_PM)
 		print "#!$$^X\n"; \
 		foreach my $$file (@ARGV) { \
 			local @ARGV = ($$file); \
-			while (<>) { last if /^"ENDOFMODULE";$$/; print } \
+			while (<>) { \
+				last if /^(__END__|"ENDOFMODULE";)$$/; \
+				next if /^\s*$$/; \
+				print \
+		 } \
 		} \
 		print "1;\n";\
-	' $(NANOACGI) $(TO_INST_PM) > $(NANOADIR)/nanoa.cgi
+	' $(NANOACGI) $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
