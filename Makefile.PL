@@ -29,15 +29,15 @@ NANOATMPL = \
 	template/footer.mt
 
 nanoadir: 
-	if [ ! -d $(NANOADIR) ]; then \
-		$(MKPATH) $(NANOADIR); \
+	$(NOECHO)if [ ! -d $(NANOADIR) ]; then \
+		$(NOECHO)$(MKPATH) $(NANOADIR); \
 	fi
-	if [ ! -d $(NANOATMPLDIR) ]; then \
-		$(MKPATH) $(NANOATMPLDIR); \
+	$(NOECHO)if [ ! -d $(NANOATMPLDIR) ]; then \
+		$(NOECHO)$(MKPATH) $(NANOATMPLDIR); \
 	fi
 
 nanoacgi: $(TO_INST_PM)
-	$(FULLPERLRUN) -e ' \
+	$(NOECHO)$(FULLPERLRUN) -e ' \
 		print "#!$$^X\n"; \
 		foreach my $$file (@ARGV) { \
 			local @ARGV = ($$file); \
@@ -47,10 +47,10 @@ nanoacgi: $(TO_INST_PM)
 	' $(NANOACGI) $(TO_INST_PM) > $(NANOADIR)/nanoa.cgi
 
 nanoatmpl: $(NANOATMPL)
-	tar cf - $+ | (cd $(NANOADIR) && tar xf -)
+	$(NOECHO)tar cf - $+ | (cd $(NANOADIR) && tar xf -)
 
 nanoa: nanoadir nanoacgi nanoatmpl
-	$(NOOP)
+	$(NOECHO)$(NOOP)
 
 EOM
 
