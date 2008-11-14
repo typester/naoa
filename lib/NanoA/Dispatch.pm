@@ -3,6 +3,8 @@ package NanoA::Dispatch;
 use strict;
 use warnings;
 
+our $APP_DIR = 'app';
+
 sub dispatch {
     my $klass = shift;
     
@@ -19,6 +21,10 @@ sub dispatch {
     
     my $handler_klass = $klass->load_handler($config, $handler_path)
         || $klass->load_handler($config, $config->not_found);
+    
+    die "could not find handler for $handler_path nor " . $config->not_found . "\n"
+        unless $handler_klass;
+    
     my $handler = $handler_klass->new($config);
     
     $handler->prerun();
@@ -36,7 +42,7 @@ sub load_config {
     if ($handler_path =~ m|^(.*?)/|) {
         $app_name = $1;
         $module_name = "$app_name\::config"
-            if NanoA::load_once("$app_name/config.pm");
+            if NanoA::load_once("$APP_DIR/$app_name/config.pm");
     }
     return $module_name->new({
         app_name => $app_name,
@@ -57,9 +63,8 @@ sub load_handler {
 
 sub load_pm {
     my ($klass, $config, $path) = @_;
-    $path =~ s{/+$}{};
     local $@;
-    NanoA::load_once("$path.pm")
+    NanoA::load_once("$APP_DIR/$path.pm")
         or return;
     my $module = $path;
     $module =~ s{/}{::}g;
@@ -71,8 +76,13 @@ sub load_mojo_template {
     my ($klass, $config, $path) = @_;
     $path =~ s{/+$}{};
     return
-        unless -e "$path.mt";
-    NanoA::TemplateLoader::__load($config, $path);
+        unless -e "$APP_DIR/$path.mt";
+    my $module = $path;
+    $module =~ s{/}{::}g;
+    return $module
+        if NanoA::loaded($path);
+    NanoA::TemplateLoader::__load($config, $module, "$APP_DIR/$path.mt");
+    $module;
 }
 
 sub camelize {

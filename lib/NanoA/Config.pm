@@ -15,7 +15,7 @@ sub new {
             \&NanoA::Dispatch::load_mojo_template,
             \&NanoA::Dispatch::load_pm,
         ],
-        not_found    => 'template/not_found',
+        not_found    => 'system/not_found',
         mt_cache_dir => "/tmp/nanoa.$>.mt_cache",
         $opts ? %$opts : (),
     }, $klass;

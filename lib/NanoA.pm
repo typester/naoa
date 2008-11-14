@@ -70,7 +70,13 @@ sub redirect {
 
 sub render {
     my ($self, $path, $c) = @_;
-    my $module = NanoA::TemplateLoader::__load($self->config, $path);
+    my $module = $path;
+    $module =~ s|/|::|g;
+    NanoA::TemplateLoader::__load(
+        $self->config,
+        $module,
+        $self->app_dir . "/$path.mt",
+    );
     $module->run_as($self, $c);
 }
 
@@ -92,6 +98,10 @@ sub root_uri {
     my $p = nanoa_uri();
     $p =~ s|/[^/]+$||;
     $p;
+}
+
+sub app_dir {
+    'app';
 }
 
 sub config {
@@ -182,7 +192,6 @@ sub read_file {
 sub __insert_methods {
     my $module = shift;
     no strict 'refs';
-    print "Adding functions to $module\n";
     *{"$module\::$_"} = \&{$_}
         for qw(h);
 }

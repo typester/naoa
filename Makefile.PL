@@ -24,17 +24,17 @@ my @copy_extlib = qw(
     extlib/CGI/Simple.pm
     extlib/CGI/Simple/Cookie.pm
     extlib/CGI/Simple/Util.pm
-	extlib/MENTA/Template.pm
+    extlib/MENTA/Template.pm
 );
 
-my @systmpl = File::Find::Rule->file()->name('*.mt')->in('system');
-my @examples = File::Find::Rule->file()->in('example');
+my $appfiles = join(
+    ' ',
+    File::Find::Rule->file()->name('*.pm', '*.mt')->in('app'),
+);
 
 my $postamble = <<'EOM';
 NANOADIR = dist-cgi
-NANOATMPLDIR = $(NANOADIR)/system
-NANOAAPPDIR = $(NANOADIR)/app
-NANOACGI = system/nanoa.cgi
+NANOACGI = nanoa.pl
 
 nanoadir: 
 	$(NOECHO)$(MKPATH) $(NANOADIR); \
@@ -55,11 +55,16 @@ nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
-nanoaexample:
-	$(NOECHO) $(MKPATH) $(NANOAAPPDIR)
-	$(NOECHO) tar cf - example | (cd $(NANOAAPPDIR) && tar xf -)
+nanoaapp:
+EOM
 
-nanoa: nanoadir nanoacgi nanoasystmpl nanoaextlib nanoaexample
+$postamble .= <<"EOM";
+	\$(NOECHO) tar cf - $appfiles | (cd \$(NANOADIR) && tar xf -)
+EOM
+
+$postamble .= <<'EOM';
+
+nanoa: nanoadir nanoacgi nanoaextlib nanoaapp
 	$(NOECHO)$(NOOP)
 
 nanoaextlib: 
@@ -70,18 +75,6 @@ EOM
 foreach my $file (@copy_extlib) {
     $postamble .= <<"EOM";
 	\$(NOECHO)\$(CP) $file \$(NANOADIR)/$file
-EOM
-}
-
-$postamble .= <<'EOM';
-
-nanoasystmpl:
-	$(NOECHO) $(MKPATH) $(NANOATMPLDIR);
-EOM
-
-foreach my $file (@systmpl) {
-	$postamble .= <<"EOM";
-	\$(NOECHO) \$(CP) $file \$(NANOADIR)/$file
 EOM
 }
 

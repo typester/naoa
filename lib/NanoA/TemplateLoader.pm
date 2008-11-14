@@ -6,14 +6,9 @@ use warnings;
 use base qw(NanoA);
 
 sub __load {
-    my ($config, $path) = @_;
-    my $module = $path;
-    $module =~ s{(^|/)\./}{$1}g;
-    $module =~ s{/}{::}g;
-    return $module
-        if NanoA::loaded($path);
+    my ($config, $module, $path) = @_;
     if (__use_cache($config, $path)) {
-        NanoA::load_once($config->mt_cache_dir . "/$path.mtc", "$path.mt");
+        NanoA::load_once($config->mt_cache_dir . "/$path.c", $path);
         return $module;
     }
     my $code = __compile($path, $module);
@@ -23,13 +18,13 @@ sub __load {
     __update_cache($config, $path, $code)
         if $config->mt_cache_dir;
     NanoA::loaded($path, 1);
-    $module;
 }
 
 sub __compile {
     my ($path, $module) = @_;
+    NanoA::require_once('MENTA/Template.pm');
     my $t = MENTA::Template->new;
-    $t->parse(NanoA::read_file("$path.mt"));
+    $t->parse(NanoA::read_file($path));
     $t->build();
     my $code = $t->code();
     $code = << "EOT";
@@ -60,7 +55,7 @@ sub __update_cache {
         mkdir $cache_path;
         $cache_path .= "/$p";
     }
-    $cache_path .= '.mtc';
+    $cache_path .= '.c';
     open my $fh, '>', $cache_path
         or die "failed to create cache file $cache_path";
     print $fh $code;
@@ -70,9 +65,9 @@ sub __update_cache {
 sub __use_cache {
     my ($config, $path) = @_;
     return unless $config->mt_cache_dir;
-    my @orig = stat "$path.mt"
+    my @orig = stat $path
         or return;
-    my @cached = stat $config->mt_cache_dir . "/$path.mtc"
+    my @cached = stat $config->mt_cache_dir . "/$path.c"
         or return;
     return $orig[9] < $cached[9];
 }
