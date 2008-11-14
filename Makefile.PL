@@ -1,15 +1,17 @@
 # NOTES:
 #   このファイル、およびlibはあくまで開発者向けのもので、ユーザーには
 #       nanoa.cgi
-#       template/not_found.mt
-#       template/app_list.mt
-#       template/header.mt
-#       template/footer.mt
+#       system/not_found.mt
+#       system/app_list.mt
+#       system/header.mt
+#       system/footer.mt
 #   の4ファイルのみを提供する。
 #
 #   nanoa.cgiはmake nanoaで作成される
 
+use strict;
 use inc::Module::Install;
+use File::Find::Rule; # ここで使うだけだから許して！
 
 name('NanoA');
 all_from('lib/NanoA.pm');
@@ -25,23 +27,15 @@ my @copy_extlib = qw(
 	extlib/MENTA/Template.pm
 );
 
+my @systmpl = File::Find::Rule->file()->name('*.mt')->in('system');
+
 my $postamble = <<'EOM';
 NANOADIR = dist-cgi
-NANOATMPLDIR = $(NANOADIR)/template
-NANOACGI = template/nanoa.cgi
-NANOATMPL = \
-	template/not_found.mt \
-	template/app_list.mt \
-	template/header.mt \
-	template/footer.mt
+NANOATMPLDIR = $(NANOADIR)/system
+NANOACGI = system/nanoa.cgi
 
 nanoadir: 
-	$(NOECHO)if [ ! -d $(NANOADIR) ]; then \
-		$(NOECHO)$(MKPATH) $(NANOADIR); \
-	fi
-	$(NOECHO)if [ ! -d $(NANOATMPLDIR) ]; then \
-		$(NOECHO)$(MKPATH) $(NANOATMPLDIR); \
-	fi
+	$(NOECHO)$(MKPATH) $(NANOADIR); \
 
 nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(FULLPERLRUN) -e ' \
@@ -59,20 +53,30 @@ nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
-nanoatmpl: $(NANOATMPL)
-	$(NOECHO)tar cf - $+ | (cd $(NANOADIR) && tar xf -)
-
-nanoa: nanoadir nanoacgi nanoatmpl nanoaextlib
+nanoa: nanoadir nanoacgi nanoasystmpl nanoaextlib
 	$(NOECHO)$(NOOP)
 
 nanoaextlib: 
-	$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
-	$(MKPATH) $(NANOADIR)/extlib/MENTA
+	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
+	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib/MENTA
 EOM
 
 foreach my $file (@copy_extlib) {
     $postamble .= <<"EOM";
-	\$(CP) $file \$(NANOADIR)/$file
+	\$(NOECHO)\$(CP) $file \$(NANOADIR)/$file
+EOM
+}
+
+$postamble .= <<'EOM';
+
+nanoasystmpl:
+	$(ECHO) hoge
+	$(NOECHO) $(MKPATH) $(NANOATMPLDIR);
+EOM
+
+foreach my $file (@systmpl) {
+	$postamble .= <<"EOM";
+	\$(NOECHO) \$(CP) $file \$(NANOADIR)/$file
 EOM
 }
 
