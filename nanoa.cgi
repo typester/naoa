@@ -100,9 +100,9 @@ sub redirect {
 }
 
 sub render {
-    my ($self, $path) = @_;
+    my ($self, $path, $c) = @_;
     my $module = NanoA::TemplateLoader::__load($self->config, $path);
-    $module->run_as($self);
+    $module->run_as($self, $c);
 }
 
 sub escape_html {
@@ -186,6 +186,20 @@ sub loaded {
     $LOADED{$path} = shift
         if @_;
     $LOADED{$path};
+}
+
+sub db {
+    my $self = shift;
+    unless ($self->{db}) {
+        require_once('DBI.pm');
+        $self->{db} = DBI->connect(
+            sprintf(
+                $self->config->global_config('dbi_uri'),
+                $self->config->app_name,
+            ),
+        ) or die DBI->errstr;
+    }
+    $self->{db};
 }
 
 sub read_file {
@@ -273,17 +287,6 @@ sub not_found {
 sub mt_cache_dir {
     my $self = shift;
     $self->{mt_cache_dir};
-}
-
-sub db {
-    my $self = shift;
-    unless ($self->{db}) {
-        NanoA::require_once('DBI.pm');
-        $self->{db} = DBI->connect(
-            sprintf($self->global_config('dbi_uri'), $self->app_name),
-        ) or die DBI->errstr;
-    }
-    $self->{db};
 }
 
 package NanoA::Dispatch;
@@ -404,7 +407,7 @@ sub __compile {
     my ($path, $module) = @_;
     NanoA::require_once("MENTA/Template.pm");
     my $t = MENTA::Template->new;
-    $t->parse(__read_file("$path.mt"));
+    $t->parse(NanoA::read_file("$path.mt"));
     $t->build();
     my $code = $t->code();
     $code = << "EOT";
@@ -415,12 +418,12 @@ BEGIN {
     *escape_html = \\&{'NanoA::escape_html'};
 };
 sub run {
-    my \$app = shift;
+    my (\$app, \$c) = \@_;
     $code->();
 }
 sub run_as {
-    my (\$klass, \$app) = \@_;
-    run(\$app);
+    my (\$klass, \$app, \$c) = \@_;
+    run(\$app, \$c);
 }
 1;
 EOT
