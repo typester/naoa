@@ -28,7 +28,6 @@ sub __load {
 
 sub __compile {
     my ($path, $module) = @_;
-    NanoA::require_once("MENTA/Template.pm");
     my $t = MENTA::Template->new;
     $t->parse(NanoA::read_file("$path.mt"));
     $t->build();
