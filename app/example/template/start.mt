@@ -8,7 +8,7 @@ There are two ways to write applications using NanoA.
 </p>
 <ul>
 <li><a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/start.pm">source code of this page</a> (logic &amp; template style)</li>
-<li><a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/example/mojo.mt">PHP style source code</a> (can be executed directly: <a href="mojo?user=john">link</a>)</li>
+<li><a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/app/example/mojo.mt">PHP style source code</a> (can be executed directly: <a href="mojo?user=john">link</a>)</li>
 </ul>
 <p>
 Now comes with a shocking debug screen as well: <a href="debugscreen">see debug screen</a>.
