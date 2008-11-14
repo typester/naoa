@@ -1,4 +1,4 @@
-<%=r $app->render('NanoA/header') %>
+<%=r $app->render('template/header') %>
 Thank you for installing NanoA.  Following applications are currently available.
 <ul>
 % foreach my $dir (<*/start.*>) {
@@ -7,5 +7,5 @@ Thank you for installing NanoA.  Following applications are currently available.
 <li><a href="<%= $app->nanoa_uri . "/$dir/" %>"><%= $dir %></a></li>
 % }
 </ul>
-<%=r $app->render('NanoA/footer') %>
+<%=r $app->render('template/footer') %>
 
