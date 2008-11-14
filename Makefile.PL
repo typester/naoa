@@ -45,6 +45,8 @@ nanoacgi: $(TO_INST_PM)
 		} \
 		print "1;\n";\
 	' $(NANOACGI) $(TO_INST_PM) > $(NANOADIR)/nanoa.cgi
+	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
+	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
 nanoatmpl: $(NANOATMPL)
 	$(NOECHO)tar cf - $+ | (cd $(NANOADIR) && tar xf -)
