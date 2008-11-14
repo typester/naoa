@@ -27,11 +27,8 @@ NANOATMPL = \
 	template/app_list.mt \
 	template/header.mt \
 	template/footer.mt
-EXTLIBS = \
-	extlib/MENTA/Template.pm \
-	extlib/CGI/Simple.pm \
-	extlib/CGI/Simple/Cookie.pm \
-	extlib/CGI/Simple/Util.pm 
+E_EXTLIBS = \
+	extlib/MENTA/Template.pm
 
 nanoadir: 
 	$(NOECHO)if [ ! -d $(NANOADIR) ]; then \
@@ -53,14 +50,20 @@ nanoacgi: $(TO_INST_PM)
 		 } \
 		} \
 		print "1;\n";\
-	' $(NANOACGI) $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
+	' $(NANOACGI) $(TO_INST_PM) $(INCLUDE_EXTLIBS) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
 nanoatmpl: $(NANOATMPL)
 	$(NOECHO)tar cf - $+ | (cd $(NANOADIR) && tar xf -)
 
-nanoa: nanoadir nanoacgi nanoatmpl
+nanoaextlib: 
+	$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
+	$(CP) extlib/CGI/Simple.pm $(NANOADIR)/extlib/CGI/Simple.pm
+	$(CP) extlib/CGI/Simple/Cookie.pm $(NANOADIR)/extlib/CGI/Simple/Cookie.pm
+	$(CP) extlib/CGI/Simple/Util.pm $(NANOADIR)/extlib/CGI/Simple/Util.pm
+
+nanoa: nanoadir nanoacgi nanoatmpl nanoaextlib
 	$(NOECHO)$(NOOP)
 
 EOM

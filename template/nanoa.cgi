@@ -7,6 +7,7 @@ if ($ENV{MOD_PERL}) {
     $base_dir =~ s|/[^/]*$||;
     chdir $base_dir;
 }
+unshift @INC, 'extlib';
 
 do {
     local $@;
