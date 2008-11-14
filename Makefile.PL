@@ -12,6 +12,7 @@
 use strict;
 use inc::Module::Install;
 use File::Find::Rule; # ここで使うだけだから許して！
+use File::Spec;
 
 name('NanoA');
 all_from('lib/NanoA.pm');
@@ -32,11 +33,16 @@ my $appfiles = join(
     File::Find::Rule->file()->name('*.pm', '*.mt')->in('app'),
 );
 
-my $postamble = <<'EOM';
-NANOADIR = dist-cgi
+my $distdir = File::Spec->catfile('dist-cgi', version());
+my $postamble = <<EOM;
+NANOADIR = $distdir
 
+EOM
+
+$postamble .= <<'EOM';
 nanoadir: 
-	$(NOECHO)$(MKPATH) $(NANOADIR); \
+	$(NOECHO)$(RM_RF) $(NANOADIR);
+	$(NOECHO)$(MKPATH) $(NANOADIR);
 
 nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(FULLPERLRUN) -e ' \
@@ -54,6 +60,9 @@ nanoacgi: $(TO_INST_PM)
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
+nanoamanifest:
+	$(NOECHO)$(FULLPERLRUN) tools/manifest.pl $(NANOADIR) > $(NANOADIR)/MANIFEST
+
 nanoaapp:
 EOM
 
@@ -63,7 +72,7 @@ EOM
 
 $postamble .= <<'EOM';
 
-nanoa: nanoadir nanoacgi nanoaextlib nanoaapp
+nanoa: nanoadir nanoacgi nanoaextlib nanoaapp nanoamanifest
 	$(NOECHO)$(NOOP)
 
 nanoaextlib: 
