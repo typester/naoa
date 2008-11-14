@@ -22,7 +22,9 @@ my @copy_extlib = qw(
     extlib/CGI/Simple.pm
     extlib/CGI/Simple/Cookie.pm
     extlib/CGI/Simple/Util.pm
+	extlib/MENTA/Template.pm
 );
+
 my $postamble = <<'EOM';
 NANOADIR = dist-cgi
 NANOATMPLDIR = $(NANOADIR)/template
@@ -32,8 +34,6 @@ NANOATMPL = \
 	template/app_list.mt \
 	template/header.mt \
 	template/footer.mt
-EXTLIBS = \
-	extlib/MENTA/Template.pm
 
 nanoadir: 
 	$(NOECHO)if [ ! -d $(NANOADIR) ]; then \
@@ -67,6 +67,7 @@ nanoa: nanoadir nanoacgi nanoatmpl nanoaextlib
 
 nanoaextlib: 
 	$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
+	$(MKPATH) $(NANOADIR)/extlib/MENTA
 EOM
 
 foreach my $file (@copy_extlib) {
