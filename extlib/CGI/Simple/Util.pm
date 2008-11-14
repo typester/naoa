@@ -414,43 +414,4 @@ BEGIN {
   }
 }
 
-1;
-
-__END__
-
-=head1 NAME
-
-CGI::Simple::Util - Internal utilities used by CGI::Simple module
-
-=head1 SYNOPSIS
-
-    $escaped     = escapeHTML('In HTML you need to escape < > " and & chars');
-    $unescaped   = unescapeHTML('&lt;&gt;&quot;&amp;');
-    $url_encoded = escape($string);
-    $decoded     = unescape($url_encoded);
-
-=head1 DESCRIPTION
-
-CGI::Simple::Util contains essentially non public subroutines used by
-CGI::Simple. There are HTML and URL escape and unescape routines that may
-be of some use.
-
-An internal object is used to store a number of system specific details to
-enable the escape routines to be accurate.
-
-=head1 AUTHOR INFORMATION
-
-Original version copyright 1995-1998, Lincoln D. Stein.  All rights reserved.
-Originally copyright 2001 Dr James Freeman E<lt>jfreeman@tassie.net.auE<gt>
-This release by Andy Armstrong <andy@hexten.net>
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-Address bug reports and comments to: andy@hexten.net
-
-=head1 SEE ALSO
-
-L<CGI::Simple>
-
-=cut
+"ENDOFMODULE";
