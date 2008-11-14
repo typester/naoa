@@ -7,6 +7,10 @@ sub dispatch {
     my $klass = shift;
     
     my $handler_path = substr($ENV{PATH_INFO} || '/', 1);
+    if ($handler_path eq '' && -d 'app/index') {
+        print "Status: 302\nLocation: $ENV{SCRIPT_NAME}/index/\n\n";
+        exit 0;
+    }
     $handler_path =~ s{\.\.}{}g;
     $handler_path .= 'start'
         if $handler_path =~ m|^[^/]+/$|;
