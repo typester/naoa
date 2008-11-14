@@ -15,5 +15,7 @@ Body:<br />
 <h2><%= $m->{id} %>. <%= $m->{title} %></h2>
 <%= $m->{body} %>
 % }
+<hr />
+<a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/app/tinybbs">view source code</a>
 </body>
 </html>
