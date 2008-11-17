@@ -2,6 +2,7 @@ package NanoA;
 
 use strict;
 use warnings;
+use utf8;
 
 our $VERSION = '0.02';
 
@@ -12,6 +13,12 @@ BEGIN {
     %REQUIRED = ();
     %LOADED = ();
 };
+
+sub import {
+    strict->import;
+    warnings->import;
+    utf8->import;
+}
 
 sub new {
     my ($klass, $config) = @_;

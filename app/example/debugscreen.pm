@@ -1,8 +1,5 @@
 package example::debugscreen;
 
-use strict;
-use warnings;
-
 use base qw(NanoA);
 
 sub run {

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" href="<%= $app->root_uri() %>/app/system/style.css" type="text/css" />
+<link rel="stylesheet" href="<?= $app->root_uri() ?>/app/system/style.css" type="text/css" />
 <title>NanoA Application Environment</title>
 </head>
 <body>
@@ -10,12 +10,12 @@
 <div id="body">
 <div id="top">
 <ul id="links">
-<li><a href="<%= $app->nanoa_uri() %>">トップ</a></li>
-<li><a href="<%= $app->nanoa_uri() %>/system/install">インストール</a></li>
+<li><a href="<?= $app->nanoa_uri() ?>">トップ</a></li>
+<li><a href="<?= $app->nanoa_uri() ?>/system/install">インストール</a></li>
 
-<li><a href="<%= $app->nanoa_uri() %>/system/tutorial">チュートリアル</a></li>
+<li><a href="<?= $app->nanoa_uri() ?>/system/tutorial">チュートリアル</a></li>
 </ul>
-<h1><a href="<%= $app->nanoa_uri() %>">NanoA</a></h1>
+<h1><a href="<?= $app->nanoa_uri() ?>">NanoA</a></h1>
 </div>
 <div id="breadcrumb">
 </div>

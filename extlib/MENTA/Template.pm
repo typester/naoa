@@ -15,11 +15,11 @@ sub new {
         comment_mark => '#',
         expression_mark => '=',
         raw_expression_mark => '=r',
-        line_start => '%',
+        line_start => '?',
         template => '',
         tree => [],
-        tag_start => '<%',
-        tag_end => '%>',
+        tag_start => '<?',
+        tag_end => '?>',
     }, $class;
 }
 
