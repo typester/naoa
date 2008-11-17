@@ -1,11 +1,19 @@
 <%=r $app->render('system/header') %>
-<h2>What is NanoA?</h2>
+<h2>NanoA ってなに?</h2>
 <div>
-NanoA is a lightweight web application framework &amp; container, written in perl, especially suitable for CGI-based environments.  The goal is to create an easy-to-use web application framework, at the same time to provide a rich set of applications, so that with the two together it would become an environment that boosts the productivity of web developers.
+NanoA は、気軽に使えるウェブアプリケーション実行環境です。その特徴は以下のとおり。
+<ul>
+<li>初心者でも簡単にアプリケーションを作成可能</li>
+<li>CGI でも高速に動作 (レンタルサーバで使えます)</li>
+<li>データベース管理や設定の手間は、フレームワーク同梱のシステムアプリケーションにおまかせ (予定)</li>
+<li>オブジェクト指向フレームワークなので、大規模なアプリケーション構築も可能</li>
+</ul>
 </div>
-<h2>Installed Applications</h2>
+
+<h2>インストール済のアプリケーション</h2>
+
 <div>
-Thank you for installing NanoA.  Following applications are currently available.
+NanoA をインストールいただきありがとうございます。現在、以下のアプリケーションが実行可能です。
 <ul>
 % foreach my $dir (<app/*/start.*>) {
 %   next if $dir =~ /~$/;

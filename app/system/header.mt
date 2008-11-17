@@ -10,10 +10,10 @@
 <div id="body">
 <div id="top">
 <ul id="links">
-<li><a href="#">Top</a></li>
-<li><a href="#">Install</a></li>
+<li><a href="#">トップ</a></li>
+<li><a href="#">インストール</a></li>
 
-<li><a href="#">Tutorial</a></li>
+<li><a href="#">チュートリアル</a></li>
 </ul>
 <h1><a href="./">NanoA</a></h1>
 </div>
