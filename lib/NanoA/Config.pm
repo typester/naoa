@@ -55,7 +55,7 @@ nanoa-conf.cgi の設定を確認してください
 EOT
         ;
     }
-    if ($use_htaccess) {
+    if ($use_htaccess && ! -e "$d/.htaccess") {
         open my $fh, '>', "$d/.htaccess"
             or die "$d/.htaccess を作成できません:$!";
         print $fh "Deny from All\nOrder deny,allow\n";
