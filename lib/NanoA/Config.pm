@@ -2,6 +2,7 @@ package NanoA::Config;
 
 use strict;
 use warnings;
+use utf8;
 
 sub new {
     my ($klass, $opts) = @_;
@@ -16,7 +17,7 @@ sub new {
             \&NanoA::Dispatch::load_pm,
         ],
         not_found    => 'system/not_found',
-        mt_cache_dir => "/tmp/nanoa.$>.mt_cache",
+        mt_cache_dir => "/tmp/nanoa.${NanoA::VERSION}.$>.mt_cache",
         $opts ? %$opts : (),
     }, $klass;
 }
@@ -24,14 +25,43 @@ sub new {
 sub global_config {
     my ($self, $n) = @_;
     unless ($self->{global}) {
-        # TODO: load nanoa_config.pm
         $self->{global} = {
-            dbi_uri => 'dbi:SQLite:dbname=var/%s.db',
+            dbi_uri => 'dbi:SQLite:dbname=' . $self->data_dir() . '/%s.db',
         };
-        require 'nanoa_config.pm'
-            if -e 'nanoa_config.pm';
+        # TODO: load {$self->data_dir}/nanoa-global.conf
     }
     $self->{global}->{$n};
+}
+
+sub data_dir {
+    my $self = shift;
+    my $conf = NanoA::read_file('nanoa-conf.cgi');
+    $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
+        or die "nanoa-conf.cgi に data_dir が設定されていません\n";
+    my $d = $1;
+    my $use_htaccess = $^O =~ /win32/i ? $d !~ m|^[a-z]:[\\\/]| : $d !~ m|/|;
+    if ($use_htaccess && ! $ENV{NANOA_USE_HTACCESS}) {
+            die << 'EOT';
+この実行環境は .htaccess ファイルによるアクセス制御をサポートしていません。
+nanoa-conf.cgi に、nanoa 配下以外のディレクトリを絶対パスで指定してください。
+EOT
+            ;
+        }
+    unless (-d $d) {
+        mkdir $d
+            or die << "EOT";
+データ用のディレクトリ「$d」が存在しなかったため、作成を試みましたが失敗しました。
+nanoa-conf.cgi の設定を確認してください
+EOT
+        ;
+    }
+    if ($use_htaccess) {
+        open my $fh, '>', "$d/.htaccess"
+            or die "$d/.htaccess を作成できません:$!";
+        print $fh "Deny from All\nOrder deny,allow\n";
+        close $fh;
+    }
+    $d;
 }
 
 sub app_name {

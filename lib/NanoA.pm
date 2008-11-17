@@ -2,6 +2,7 @@ package NanoA;
 
 use strict;
 use warnings;
+use utf8;
 
 our $VERSION = '0.02';
 
@@ -39,14 +40,16 @@ sub postrun {
     }
 }
 
+sub detach {
+    die { finished => 1 };
+}
+
 sub query {
     my $self = shift;
     unless ($self->{query}) {
-        my $cgi_klass = $self->config('cgi_klass') || 'CGI::Simple';
-        my $cgi_path = $cgi_klass;
-        $cgi_path =~ s{::}{/}g;
-        require_once("$cgi_path.pm");
-        $self->{query} = $cgi_klass->new;
+        require_once('CGI/Simple.pm');
+        $CGI::Simple::PARAM_UTF8 = 1;
+        $self->{query} = CGI::Simple->new;
     }
     $self->{query};
 }
@@ -63,11 +66,10 @@ sub headers {
 }
 
 sub redirect {
-    my ($self, $uri) = @_;
-    $self->header_add(
-        -status   => 302,
-        -location => $uri,
-    );
+    my ($self, $uri, $status) = @_;
+    $status ||= 302;
+    print "Status: $status\nLocation: $uri\n\n";
+    $self->detach;
 }
 
 sub render {
@@ -173,12 +175,11 @@ sub db {
     my $self = shift;
     unless ($self->{db}) {
         require_once('DBI.pm');
-        $self->{db} = DBI->connect(
-            sprintf(
-                $self->config->global_config('dbi_uri'),
-                $self->config->app_name,
-            ),
-        ) or die DBI->errstr;
+        my $dbi = $self->config->global_config('dbi_uri');
+        $self->{db} = DBI->connect(sprintf($dbi, $self->config->app_name))
+            or die DBI->errstr;
+        $self->{db}->{unicode} = 1
+            if $dbi =~ /^dbi:sqlite:/i;
     }
     $self->{db};
 }
@@ -218,7 +219,7 @@ sub mobile_carrier_longname {
 
 sub read_file {
     my $fname = shift;
-    open my $fh, '<', $fname or die "cannot read $fname:$!";
+    open my $fh, '<:utf8', $fname or die "cannot read $fname:$!";
     my $s = do { local $/; join '', <$fh> };
     close $fh;
     $s;

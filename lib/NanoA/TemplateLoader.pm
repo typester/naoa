@@ -29,6 +29,9 @@ sub __compile {
     my $code = $t->code();
     $code = << "EOT";
 package $module;
+use strict;
+use warnings;
+use utf8;
 use base qw(NanoA::TemplateLoader);
 BEGIN {
     no strict 'refs';
@@ -56,7 +59,7 @@ sub __update_cache {
         $cache_path .= "/$p";
     }
     $cache_path .= '.c';
-    open my $fh, '>', $cache_path
+    open my $fh, '>:utf8', $cache_path
         or die "failed to create cache file $cache_path";
     print $fh $code;
     close $fh;

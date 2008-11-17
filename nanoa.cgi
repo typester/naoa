@@ -12,4 +12,5 @@ use NanoA::Dispatch;
 use NanoA::TemplateLoader;
 
 require 'nanoa.pl';
+
 1;

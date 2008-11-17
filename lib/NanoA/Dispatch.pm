@@ -2,6 +2,7 @@ package NanoA::Dispatch;
 
 use strict;
 use warnings;
+use utf8;
 
 sub dispatch {
     my $klass = shift;
@@ -34,6 +35,7 @@ sub dispatch {
     $handler->postrun(\$body);
     
     $handler->print_header();
+    utf8::encode($body);
     print $body;
 }
 

@@ -10,10 +10,18 @@ if ($ENV{MOD_PERL}) {
 unshift @INC, 'extlib';
 
 do {
+    local $@;
     local $SIG{__DIE__} = sub {
+        die $_[0]
+            if ref $_[0] eq 'HASH' && $_[0]->{finished};
         NanoA::DebugScreen::build(@_);
     };
-    NanoA::Dispatch->dispatch();
+    eval {
+        NanoA::Dispatch->dispatch();
+    };
+    if ($@ && ref $@ eq 'HASH' && $@->{finished}) {
+        # just ignore
+    }
 };
 
 1;

@@ -35,7 +35,7 @@ sub build_context {
         my $start = $linenum - 3;
         my $end   = $linenum + 3;
         $start = $start < 1 ? 1 : $start;
-        open my $fh, '<', $file or die "cannot open $file";
+        open my $fh, '<:utf8', $file or die "cannot open $file";
         my $cur_line = 0;
         while ( my $line = <$fh> ) {
             ++$cur_line;
@@ -75,6 +75,7 @@ sub output {
         $out .= qq{</ol><p style="text-align: right; color: black"><strong>Regards,<br>NanoA</strong></p>\n};
         $out;
     };
+    utf8::encode($body);
     print $body;
 }
 
