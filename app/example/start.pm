@@ -7,7 +7,7 @@ use warnings;
 
 sub run {
     my $app = shift;
-    $app1->render('example/template/start');
+    $app->render('example/template/start');
 }
 
 1;
