@@ -8,8 +8,6 @@ our $VERSION = '0.01';
 my %REQUIRED;
 my %LOADED;
 
-our $MOBILEAGENTRE;
-
 BEGIN {
     %REQUIRED = ();
     %LOADED = ();
