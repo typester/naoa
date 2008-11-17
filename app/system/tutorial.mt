@@ -11,21 +11,25 @@
 </p>
 <ol>
 <li>NanoA の app ディレクトリの下に hello ディレクトリを作る</li>
-<li>app/hello ディレクトリの下に、start.pm というファイルを配置し、以下のように記述</li>
+<li>app/hello ディレクトリの下に、start.mt というファイルを配置し、以下のように記述</li>
 </ol>
-<div class="pre_caption">app/hello/start.pm</div>
+<div class="pre_caption">app/hello/start.mt</div>
 <pre>
-package hello::start;
-
-use strict;
-use warnings;
-
-use base (NanoA);
-
-sub run {
-    return "hello world;";
-}
+Hello, world!
 </pre>
+<p>ファイルの設置が完了したら、NanoA のトップページをリロードしてみましょう。インストール済のアプリケーション一覧に、hello というアプリケーションが増えているはずです (今あなたが書いたアプリケーションです) 。そのアプリケーション名をクリックすると、「Hello, world!」と表示されるはずです。
+
+<h2 id="hello_user">「○○さん、こんにちは」の作成</h2>
+<p>
+いつまで書いててもおわんないよ ToT
+</p>
+
+<h2>以下続く。</h2>
+<ul>
+<li>ふたつめのコントローラー＜/li>
+<li>テンプレートの分離</li>
+<li>データベース接続</li>
+</ul>
 
 <h2 id="mobile">ケータイ対応</h2>
 <p>
