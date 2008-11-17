@@ -1,4 +1,4 @@
-<%=r $app->render('system/header') %>
+<?=r $app->render('system/header') ?>
 
 <h2>開発版のダウンロード</h2>
 <p>
@@ -8,8 +8,8 @@ Subversion を使用して、<a href="http://svn.coderepos.org/share/lang/perl/N
 以下の例では、http://host/~user/nanoa/ というディレクトリが、NanoA のインストール先になります。
 </p>
 <pre>
- % svn co http://svn.coderepos.org/share/lang/perl/NanoA/trunk
- % mv trunk ~/public_html/nanoa
+% svn co http://svn.coderepos.org/share/lang/perl/NanoA/trunk
+% mv trunk ~/public_html/nanoa
 </pre>
 
-<%=r $app->render('system/footer') %>
+<?=r $app->render('system/footer') ?>
