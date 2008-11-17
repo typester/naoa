@@ -21,11 +21,13 @@ all_from('lib/NanoA.pm');
 # 使ってはいけません
 
 # ここでnanoaルールを定義
-my @copy_extlib = qw(
+my @extra_files = qw(
+    .htaccess
     extlib/CGI/Simple.pm
     extlib/CGI/Simple/Cookie.pm
     extlib/CGI/Simple/Util.pm
     extlib/MENTA/Template.pm
+    nanoa-conf.cgi
 );
 
 my $appfiles = join(
@@ -80,7 +82,7 @@ nanoaextlib:
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib/MENTA
 EOM
 
-foreach my $file (@copy_extlib) {
+foreach my $file (@extra_files) {
     $postamble .= <<"EOM";
 	\$(NOECHO)\$(CP) $file \$(NANOADIR)/$file
 EOM
