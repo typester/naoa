@@ -41,7 +41,9 @@ sub build {
         push @trace, {level => $i, package => $package, filename => $filename, line => $line, context => $context };
         $i++;
     }
-    die { message => $msg, trace => \@trace };
+    
+    output({ message => $msg, trace => \@trace });
+    exit 0;
 }
 
 sub output {
