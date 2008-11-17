@@ -48,12 +48,14 @@ EOT
             ;
         }
     unless (-d $d) {
+        my $u = umask 077;
         mkdir $d
             or die << "EOT";
 データ用のディレクトリ「$d」が存在しなかったため、作成を試みましたが失敗しました。
 nanoa-conf.cgi の設定を確認してください
 EOT
         ;
+        umask $u;
     }
     if ($use_htaccess && ! -e "$d/.htaccess") {
         open my $fh, '>', "$d/.htaccess"
