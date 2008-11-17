@@ -10,12 +10,12 @@
 <div id="body">
 <div id="top">
 <ul id="links">
-<li><a href="#">トップ</a></li>
-<li><a href="#">インストール</a></li>
+<li><a href="<%= $app->nanoa_uri() %>">トップ</a></li>
+<li><a href="<%= $app->nanoa_uri() %>/system/install">インストール</a></li>
 
-<li><a href="#">チュートリアル</a></li>
+<li><a href="<%= $app->nanoa_uri() %>/system/tutorial">チュートリアル</a></li>
 </ul>
-<h1><a href="./">NanoA</a></h1>
+<h1><a href="<%= $app->nanoa_uri() %>">NanoA</a></h1>
 </div>
 <div id="breadcrumb">
 </div>
