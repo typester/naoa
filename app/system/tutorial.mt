@@ -20,19 +20,28 @@ Hello, world!
 <p>
 ファイルの設置が完了したら、NanoA のトップページをリロードしてみましょう。インストール済のアプリケーション一覧に、hello というアプリケーションが増えているはずです (今あなたが書いたアプリケーションです) 。そのアプリケーション名をクリックすると、「Hello, world!」と表示されるはずです。
 </p>
+<h2 id="hellouser">クエリ文字列のハンドリング</h2>
 <p>
-また、以下のように書けば、クエリ文字列「user」からユーザー名を読み取って、「Hello, ○○さん!」と表示できるようになります。
+では続いて、クエリ文字列「user」からユーザー名を読み取って、「○○さん、こんにちは」と表示するページを作ってみましょう。
 </p>
-<div class="pre_caption">app/hello/start.mt</div>
+<div class="pre_caption">app/hello/hello2.mt</div>
 <pre>
-Hello, &lt;?= $app->query->param('user') ?&gt;
+&lt;?= $app->query->param('user') ?&gt;さん、こんにちは
 </pre>
-<h2>以下続く。</h2>
-<ul>
-<li>ふたつめのコントローラー＜/li>
-<li>テンプレートの分離</li>
-<li>データベース接続</li>
-</ul>
+<p>
+nanoa.cgi/hello/hello2?user=John を開くと、「Johnさん、こんにちは」と表示されるはずです。user= の後に日本語を書いても大丈夫。ちゃんと日本語の名前が表示されます。
+</p>
+<p>
+NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI-Simple/">CGI::Simple</a> を同梱しています。リクエストのパースやファイルアップロードの受信、クッキー処理の手法については、CGI::Simple のドキュメントをご参照ください。
+</p>
+
+<h2 id="split_template">テンプレートの分離</h2>
+
+<h2 id="database">データベース接続</h2>
+
+<h2 id="config">アプリケーションの設定</h2>
+
+<h2 id="hooks">アプリケーションのフック</h2>
 
 <h2 id="mobile">ケータイ対応</h2>
 <p>
