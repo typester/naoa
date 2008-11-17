@@ -1,4 +1,32 @@
 <%=r $app->render('system/header') %>
+
+<h2 id="install">インストール</h2>
+<p>
+まず、<a href="install">インストール</a>の説明に従って、NanoA をインストールします。インストールが完了すると、<a href="<%= $app->nanoa_uri %>">こちら</a>の画面が表示されるようになります。
+</p>
+
+<h2 id="helloworld">Helloworld の作成</h2>
+<p>
+インストールが完了したら、「Hello, world!」と表示するだけのウェブアプリケーションを作成してみましょう。手順は以下のとおりです。
+</p>
+<ol>
+<li>NanoA の app ディレクトリの下に hello ディレクトリを作る</li>
+<li>app/hello ディレクトリの下に、start.pm というファイルを配置し、以下のように記述</li>
+</ol>
+<div class="pre_caption">app/hello/start.pm</div>
+<pre>
+package hello::start;
+
+use strict;
+use warnings;
+
+use base (NanoA);
+
+sub run {
+    return "hello world;";
+}
+</pre>
+
 <h2 id="mobile">ケータイ対応</h2>
 <p>
 mobile_carrier_longname 関数を呼び出すことで、携帯端末のキャリアを判定することが可能です。返り値の値は、HTTP::MobileAgent に準じます<sup>注1</sup>。
