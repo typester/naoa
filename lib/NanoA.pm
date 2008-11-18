@@ -14,6 +14,12 @@ BEGIN {
     %LOADED = ();
 };
 
+sub import {
+    strict->import;
+    warnings->import;
+    utf8->import;
+}
+
 sub new {
     my ($klass, $config) = @_;
     bless {

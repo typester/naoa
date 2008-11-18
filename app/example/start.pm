@@ -1,9 +1,7 @@
 package example::start;
 
+use NanoA;
 use base qw/NanoA/;
-
-use strict;
-use warnings;
 
 sub run {
     my $app = shift;

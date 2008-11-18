@@ -3,6 +3,7 @@ package NanoA::TemplateLoader;
 use strict;
 use warnings;
 
+use NanoA;
 use base qw(NanoA);
 
 sub __load {
@@ -29,9 +30,8 @@ sub __compile {
     my $code = $t->code();
     $code = << "EOT";
 package $module;
-use strict;
-use warnings;
-use utf8;
+use NanoA;
+use NanoA::TemplateLoader;
 use base qw(NanoA::TemplateLoader);
 BEGIN {
     no strict 'refs';

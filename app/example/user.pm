@@ -1,5 +1,6 @@
 package example::user;
 
+use NanoA;
 use base qw/NanoA/;
 
 sub run {
