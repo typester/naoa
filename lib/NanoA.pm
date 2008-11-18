@@ -52,6 +52,7 @@ sub query {
     my $self = shift;
     unless ($self->{query}) {
         require_once('CGI/Simple.pm');
+        no warnings "all"; # suppress 'used only once'
         $CGI::Simple::PARAM_UTF8 = 1;
         $self->{query} = CGI::Simple->new;
     }
