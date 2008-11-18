@@ -1,7 +1,10 @@
 package example::user;
 
-use NanoA;
 use base qw/NanoA/;
+
+use strict;
+use warnings;
+use utf8;
 
 sub run {
     my $self = shift;

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 my %REQUIRED;
 my %LOADED;
@@ -13,15 +13,6 @@ BEGIN {
     %REQUIRED = ();
     %LOADED = ();
 };
-
-sub import {
-    my $pkg = caller(0);
-    strict->import;
-    warnings->import;
-    utf8->import;
-    no strict 'refs';
-    *{"$pkg\::escape_html"} = \&escape_html;
-}
 
 sub new {
     my ($klass, $config) = @_;
@@ -239,6 +230,13 @@ sub read_file {
     my $s = do { local $/; join '', <$fh> };
     close $fh;
     $s;
+}
+
+sub __insert_methods {
+    my $module = shift;
+    no strict 'refs';
+    *{"$module\::$_"} = \&{$_}
+        for qw(escape_html);
 }
 
 "ENDOFMODULE";

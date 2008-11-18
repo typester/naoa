@@ -3,7 +3,6 @@ package NanoA::TemplateLoader;
 use strict;
 use warnings;
 
-use NanoA;
 use base qw(NanoA);
 
 sub __load {
@@ -30,9 +29,11 @@ sub __compile {
     my $code = $t->code();
     $code = << "EOT";
 package $module;
-use NanoA;
-use NanoA::TemplateLoader;
+use strict;
+use warnings;
+use utf8;
 use base qw(NanoA::TemplateLoader);
+NanoA::__insert_methods(__PACKAGE__);
 sub run {
     my (\$app, \$c) = \@_;
     $code->();

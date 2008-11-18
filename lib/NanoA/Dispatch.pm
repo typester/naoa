@@ -82,6 +82,7 @@ sub load_pm {
         or return;
     my $module = $path;
     $module =~ s{/}{::}g;
+    NanoA::__insert_methods($module);
     return $module;
 }
 

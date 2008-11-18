@@ -32,7 +32,7 @@ my @extra_files = qw(
 
 my $appfiles = join(
     ' ',
-    File::Find::Rule->file()->name('*.pm', '*.mt')->in('app'),
+    File::Find::Rule->file()->name(qw(*.pm *.mt *.jpg *.css))->in('app'),
 );
 
 my $distdir = File::Spec->catfile('dist-cgi', version());
