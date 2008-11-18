@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use lib qw(lib);
+use lib qw(lib MENTA/lib MENTA/vendor/lib);
 
 use NanoA;
 use NanoA::Config;
