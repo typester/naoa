@@ -35,13 +35,13 @@ sub prefs {
     my $app_dir = join '/', $self->data_dir, $self->app_name;
     unless (-d $app_dir) {
         mkdir $app_dir
-            or die "$app_dir を作成できません";
+            or die $app_dir . 'を作成できません';
     }
     my $file = "$app_dir/$name.conf";
     # set and return value if necessary
     if (@_) {
         open my $fh, '>:utf8', $file
-            or die "ファイルを作成できません:$file";
+            or die 'ファイルを作成できません:' . $file;
         print $fh $_[0];
         close $fh;
         return $_[0];
@@ -69,7 +69,7 @@ EOT
         my $u = umask 077;
         mkdir $d
             or die << "EOT";
-データ用のディレクトリ「$d」が存在しなかったため、作成を試みましたが失敗しました。
+データ用のディレクトリ「${d}」が存在しなかったため、作成を試みましたが失敗しました。
 nanoa-conf.cgi の設定を確認してください
 EOT
         ;
@@ -77,7 +77,7 @@ EOT
     }
     if ($use_htaccess && ! -e "$d/.htaccess") {
         open my $fh, '>', "$d/.htaccess"
-            or die "$d/.htaccess を作成できません:$!";
+            or die $d . '/.htaccess を作成できません:';
         print $fh "Deny from All\nOrder deny,allow\n";
         close $fh;
     }

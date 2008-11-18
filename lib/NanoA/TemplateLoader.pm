@@ -2,6 +2,7 @@ package NanoA::TemplateLoader;
 
 use strict;
 use warnings;
+use utf8;
 
 use base qw(NanoA);
 
