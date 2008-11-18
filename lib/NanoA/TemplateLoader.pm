@@ -33,10 +33,6 @@ package $module;
 use NanoA;
 use NanoA::TemplateLoader;
 use base qw(NanoA::TemplateLoader);
-BEGIN {
-    no strict 'refs';
-    *escape_html = \\&{'NanoA::escape_html'};
-};
 sub run {
     my (\$app, \$c) = \@_;
     $code->();

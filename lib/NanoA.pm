@@ -15,9 +15,13 @@ BEGIN {
 };
 
 sub import {
+    my $pkg = caller(0);
     strict->import;
     warnings->import;
     utf8->import;
+    print STDERR "exporting escape_html to $pkg\n";
+    no strict 'refs';
+    *{"$pkg\::escape_html"} = \&escape_html;
 }
 
 sub new {
@@ -236,13 +240,6 @@ sub read_file {
     my $s = do { local $/; join '', <$fh> };
     close $fh;
     $s;
-}
-
-sub __insert_methods {
-    my $module = shift;
-    no strict 'refs';
-    *{"$module\::$_"} = \&{$_}
-        for qw(h);
 }
 
 "ENDOFMODULE";
