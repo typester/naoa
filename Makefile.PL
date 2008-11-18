@@ -23,10 +23,6 @@ all_from('lib/NanoA.pm');
 # ここでnanoaルールを定義
 my @extra_files = qw(
     .htaccess
-    extlib/CGI/Simple.pm
-    extlib/CGI/Simple/Cookie.pm
-    extlib/CGI/Simple/Util.pm
-    extlib/MENTA/Template.pm
     nanoa-conf.cgi
 );
 
@@ -78,13 +74,14 @@ nanoa: nanoadir nanoacgi nanoaextlib nanoaapp nanoamanifest
 	$(NOECHO)$(NOOP)
 
 nanoaextlib: 
-	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib/CGI/Simple
-	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib/MENTA
+	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
+	(cd MENTA/vendor/lib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
+	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
 EOM
 
 foreach my $file (@extra_files) {
     $postamble .= <<"EOM";
-	\$(NOECHO)\$(CP) $file \$(NANOADIR)/$file
+	\$(CP) $file \$(NANOADIR)/$file
 EOM
 }
 
