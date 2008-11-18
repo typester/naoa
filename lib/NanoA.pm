@@ -22,26 +22,30 @@ sub import {
 
 sub new {
     my ($klass, $config) = @_;
-    bless {
+    my $self = bless {
         config  => $config,
         query   => undef,
         headers => {
             -type    => 'text/html',
             -charset => 'utf8',
         },
+        prerun_hooks  => [],
+        postrun_hooks => [],
     }, $klass;
+    $config->init_app($self);
+    $self;
 }
 
 sub prerun {
     my $self = shift;
-    if (my $h = $self->config->{prerun}) {
+    foreach my $h (@{$self->prerun_hooks}) {
         $h->($self);
     }
 }
 
 sub postrun {
     my ($self, $bodyref) = @_;
-    if (my $h = $self->config->{postrun}) {
+    foreach my $h (@{$self->postrun_hooks}) {
         $h->($self, $bodyref);
     }
 }
@@ -71,6 +75,16 @@ sub headers {
     $self->{headers};
 }
 
+sub prerun_hooks {
+    my $self = shift;
+    $self->{prerun_hooks};
+}
+
+sub postrun_hooks {
+    my $self = shift;
+    $self->{postrun_hooks};
+}
+
 sub redirect {
     my ($self, $uri, $status) = @_;
     $status ||= 302;
@@ -80,14 +94,7 @@ sub redirect {
 
 sub render {
     my ($self, $path, $c) = @_;
-    my $module = $path;
-    $module =~ s|/|::|g;
-    NanoA::TemplateLoader::__load(
-        $self->config,
-        $module,
-        $self->app_dir . "/$path.mt",
-    );
-    $module->run_as($self, $c);
+    return NanoA::Dispatch->dispatch_as($path, $self, $c);
 }
 
 sub escape_html {
@@ -181,11 +188,11 @@ sub db {
     my $self = shift;
     unless ($self->{db}) {
         require_once('DBI.pm');
-        my $dbi = $self->config->global_config('dbi_uri');
-        $self->{db} = DBI->connect(sprintf($dbi, $self->config->app_name))
+        my $db_uri = $self->config->db_uri;
+        $self->{db} = DBI->connect($db_uri)
             or die DBI->errstr;
         $self->{db}->{unicode} = 1
-            if $dbi =~ /^dbi:sqlite:/i;
+            if $db_uri =~ /^dbi:sqlite:/i;
     }
     $self->{db};
 }

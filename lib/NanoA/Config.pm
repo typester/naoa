@@ -8,29 +8,47 @@ sub new {
     my ($klass, $opts) = @_;
     bless {
         %$opts,
-        global       => undef,
-        prerun       => undef,
-        postrun      => undef,
-        camelize     => undef,
-        loaders      => [
+        system_config => undef,
+        camelize      => undef,
+        loaders       => [
             \&NanoA::Dispatch::load_mojo_template,
             \&NanoA::Dispatch::load_pm,
         ],
-        not_found    => 'system/not_found',
-        mt_cache_dir => "/tmp/nanoa.${NanoA::VERSION}.$>.mt_cache",
+        not_found     => 'system/not_found',
+        mt_cache_dir  => "/tmp/nanoa.${NanoA::VERSION}.$>.mt_cache",
         $opts ? %$opts : (),
     }, $klass;
 }
 
-sub global_config {
+sub system_config {
     my ($self, $n) = @_;
-    unless ($self->{global}) {
-        $self->{global} = {
-            dbi_uri => 'dbi:SQLite:dbname=' . $self->data_dir() . '/%s.db',
-        };
-        # TODO: load {$self->data_dir}/nanoa-global.conf
+    return $self
+        if $self->app_name eq 'system';
+    $self->{system_config} = NanoA::Dispatch->load_config('system/')
+        unless $self->{system_config};
+    $self->{system_config};
+}
+
+sub prefs {
+    my $self = shift;
+    my $name = shift;
+    my $app_dir = join '/', $self->data_dir, $self->app_name;
+    unless (-d $app_dir) {
+        mkdir $app_dir
+            or die "$app_dir を作成できません";
     }
-    $self->{global}->{$n};
+    my $file = "$app_dir/$name.conf";
+    # set and return value if necessary
+    if (@_) {
+        open my $fh, '>:utf8', $file
+            or die "ファイルを作成できません:$file";
+        print $fh $_[0];
+        close $fh;
+        return $_[0];
+    }
+    return
+        unless -e $file;
+    NanoA::read_file($file);
 }
 
 sub data_dir {
@@ -66,19 +84,24 @@ EOT
     $d;
 }
 
+sub db_uri {
+    my $self = shift;
+    my $template = $self->prefs('db_uri')
+        || $self->system_config->prefs('db_uri')
+            || 'dbi:SQLite:' . $self->data_dir() . '/%s.db';
+    return sprintf $template, $self->app_name
+        if $template =~ /\%s/;
+    $template;
+}
+
+# override this method to setup hooks
+sub init_app {
+    my ($self, $app) = @_;
+}
+
 sub app_name {
     my $self = shift;
     $self->{app_name};
-}
-
-sub prerun {
-    my $self = shift;
-    $self->{prerun};
-}
-
-sub postrun {
-    my $self = shift;
-    $self->{postrun};
 }
 
 sub camelize {

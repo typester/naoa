@@ -39,14 +39,24 @@ sub dispatch {
     print $body;
 }
 
+sub dispatch_as {
+    my ($klass, $path, $app, $c) = @_;
+    
+    my $handler_klass = $klass->load_handler($app->config, $path)
+        || $klass->load_handler($app->config, $app->config->not_found);
+    
+    die "could not find handler for $path nor " . $app->config->not_found . "\n"
+        unless $handler_klass;
+    
+    $handler_klass->run_as($app, $c);
+}
+
 sub load_config {
     my ($klass, $handler_path) = @_;
-    my $app_name;
+    my $app_name = $handler_path =~ m|^(.*?)/| ? $1 : 'system';
     my $module_name = "NanoA::Config";
-    if ($handler_path =~ m|^(.*?)/|) {
-        $app_name = $1;
-        $module_name = "$app_name\::config"
-            if NanoA::load_once(NanoA::app_dir() . "/$app_name/config.pm");
+    if (NanoA::load_once(NanoA::app_dir() . "/$app_name/config.pm")) {
+        $module_name = "$app_name\::config";
     }
     return $module_name->new({
         app_name => $app_name,

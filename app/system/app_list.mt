@@ -23,4 +23,5 @@ NanoA をインストールいただきありがとうございます。現在�
 ? }
 </ul>
 </div>
+
 <?=r $app->render('system/footer') ?>
