@@ -19,7 +19,6 @@ sub import {
     strict->import;
     warnings->import;
     utf8->import;
-    print STDERR "exporting escape_html to $pkg\n";
     no strict 'refs';
     *{"$pkg\::escape_html"} = \&escape_html;
 }
