@@ -1,4 +1,4 @@
-package example::debugscreen;
+package example::compile_error;
 
 use base qw(NanoA);
 
