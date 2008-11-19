@@ -114,6 +114,30 @@ body {
     background: #eee;
 }
 
+#main table {
+    border: 1px solid gray;
+    border-collapse: collapse;
+    margin: 0.5em auto;
+}
+
+#main caption {
+    font-weight: bold;
+}
+
+#main table th {
+    background: #ccc;
+    border: 1px solid gray;
+    border-collapse: collapse;
+    padding: 0 0.3em;
+    text-align: center;
+}
+
+#main table td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+    padding: 0 0.3em;
+}
+
 #footer {
     border-width: 1px 0;
     border-style: solid;

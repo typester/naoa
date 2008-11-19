@@ -24,6 +24,33 @@ app/hello というディレクトリを作成し、以下のようなファイ�
 NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI-Simple/">CGI::Simple</a> を同梱しています。上記の $app->query は、クエリオブジェクトを取得する処理です。リクエストのパースやファイルアップロードの受信、クッキー処理の手法については、CGI::Simple のドキュメントをご参照ください。
 </p>
 </div>
+<div class="column">
+<h3>テンプレートエンジンについて</h3>
+<p>
+NanoA ではテンプレートエンジンに、Mojo::Template をベースにした MENTA::Template を採用し、PHP ライクな記法でテンプレートを書くことができます。
+<div class="table">
+<table>
+<caption>表. テンプレートの代表的な使い方</caption>
+<tr>
+<th>記法</th>
+<th>意味</th>
+</tr>
+<tr>
+<td>&lt;?= $hoge ?&gt;</td>
+<td>$hoge を HTML エスケープして出力</td>
+</tr>
+<tr>
+<td>&lt;?=r $hoge ?&gt;</td>
+<td>$hoge をエスケープせずに出力</td>
+</tr>
+<tr>
+<td>&lt;?=r $app->render('hello/header') ?&gt;</td>
+<td>app/hello/header.mt をインクルード</td>
+</tr>
+</table>
+</div>
+</p>
+</div>
 
 <h2 id="split_template">テンプレートの分離</h2>
 
@@ -71,7 +98,7 @@ NanoA は標準で SQLite データベースへの接続機能を提供します
 
 <h2 id="config">アプリケーションの設定</h2>
 
-<h2 id="hooks">アプリケーションのフック</h2>
+<h2 id="hooks">アプリケーション全体の共通処理</h2>
 
 <h2 id="mobile">ケータイ対応</h2>
 <p>
