@@ -3,8 +3,9 @@ body {
     margin: 0;
     padding: 0;
     color: black;
-    font-family: Times, serif;
-    line-height: 1.3em;
+    font-family: sans-serif;
+    font-size: 90%;
+    line-height: 1.5em;
 }
 
 #body {
@@ -78,6 +79,25 @@ body {
 
 #main div {
     margin: 1em 0;
+}
+
+#main p {
+    margin: 1em 0;
+}
+
+#main .column {
+    border: 1px solid gray;
+    margin: 1em;
+    padding: 0 0.5em;
+}
+
+#main .column h3 {
+    font-size: 100%;
+    margin: 0.5em 0;
+}
+
+#main .column p {
+    margin: 0.5em 0;
 }
 
 #main .pre_caption {

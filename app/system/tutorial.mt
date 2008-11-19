@@ -7,33 +7,23 @@
 
 <h2 id="helloworld">Helloworld の作成</h2>
 <p>
-インストールが完了したら、「Hello, world!」と表示するだけのウェブアプリケーションを作成してみましょう。手順は以下のとおりです。
+app/hello というディレクトリを作成し、以下のようなファイル (start.mt) を置きます。
 </p>
-<ol>
-<li>NanoA の app ディレクトリの下に hello ディレクトリを作る</li>
-<li>app/hello ディレクトリの下に、start.mt というファイルを配置し、以下のように記述</li>
-</ol>
 <div class="pre_caption">app/hello/start.mt</div>
 <pre>
-Hello, world!
+こんにちは、&lt;?= $app->query->param('user') ?&gt;さん
 </pre>
 <p>
-ファイルの設置が完了したら、NanoA のトップページをリロードしてみましょう。インストール済のアプリケーション一覧に、hello というアプリケーションが増えているはずです (今あなたが書いたアプリケーションです) 。そのアプリケーション名をクリックすると、「Hello, world!」と表示されるはずです。
+続いて、NanoA のトップページをリロードしてみましょう。hello というアプリケーションが増えているはずです (今あなたが書いたアプリケーションです) 。そのアプリケーション名をクリックすると、「こんにちは、さん」と表示されます。
 </p>
-<h2 id="hellouser">クエリ文字列のハンドリング</h2>
+<p>$app->query->param('user') は、クエリパラメータ「user」を読み取るためのおまじないです。nanoa.cgi/hello/?user=太郎 という URL にアクセスすると、「こんにちは、太郎さん」と表示されます。
+</p>
+<div class="column">
+<h3>クエリパーサについて</h3>
 <p>
-では続いて、クエリ文字列「user」からユーザー名を読み取って、「○○さん、こんにちは」と表示するページを作ってみましょう。
+NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI-Simple/">CGI::Simple</a> を同梱しています。上記の $app->query は、クエリオブジェクトを取得する処理です。リクエストのパースやファイルアップロードの受信、クッキー処理の手法については、CGI::Simple のドキュメントをご参照ください。
 </p>
-<div class="pre_caption">app/hello/hello2.mt</div>
-<pre>
-&lt;?= $app->query->param('user') ?&gt;さん、こんにちは
-</pre>
-<p>
-nanoa.cgi/hello/hello2?user=John を開くと、「Johnさん、こんにちは」と表示されるはずです。user= の後に日本語を書いても大丈夫。ちゃんと日本語の名前が表示されます。
-</p>
-<p>
-NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI-Simple/">CGI::Simple</a> を同梱しています。リクエストのパースやファイルアップロードの受信、クッキー処理の手法については、CGI::Simple のドキュメントをご参照ください。
-</p>
+</div>
 
 <h2 id="split_template">テンプレートの分離</h2>
 
