@@ -25,7 +25,7 @@ do {
         NanoA::Dispatch->dispatch();
         undef $err_info;
     };
-    NanoA::DebugScreen::output($err_info)
+    NanoA::DebugScreen::output($err_info, 'NanoA')
         if $err_info;
 };
 
