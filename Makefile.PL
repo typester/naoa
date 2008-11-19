@@ -66,7 +66,7 @@ EOM
 
 $postamble .= <<"EOM";
 	\$(NOECHO)(cd \$(NANOADIR) && tar czf ../nanoa-$version.tar.gz .)
-	tgz2cgi/tgz2cgi.pl --title='NanoA Installer' --end='<a href="./">Next step</a><script>window.setTimeout(function () { location = "./"; }, 5000)</script>' --delete --nph < dist-cgi/nanoa-$version.tar.gz > dist-cgi/nph-nanoa-$version-installer.cgi
+	tgz2cgi/tgz2cgi.pl --title='NanoA Installer' --end='<a href="./">Next step</a><script>window.setTimeout(function () { location = "./"; }, 5000)</script>' --check-files=.htaccess,nanoa.cgi,lib,extlib,var,app --nph < dist-cgi/nanoa-$version.tar.gz > dist-cgi/nph-nanoa-$version-installer.cgi
 	\$(NOECHO)chmod 755 dist-cgi/nph-nanoa-$version-installer.cgi
 EOM
 
