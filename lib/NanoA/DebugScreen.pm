@@ -24,7 +24,8 @@ sub build {
         }
     } 0..$#trace;
     
-    +{ message => $msg, trace => \@trace };
+    output({ message => $msg, trace => \@trace });
+    exit 0;
 }
 
 sub build_context {

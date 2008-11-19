@@ -11,17 +11,18 @@ unshift @INC, 'extlib';
 
 do {
     local $@;
-    my $err_info;
     local $SIG{__DIE__} = sub {
-        die @_
+        die $_[0]
+            if caller() eq 'Encode';
+        die $_[0]
             if ref $_[0] eq 'HASH' && $_[0]->{finished};
-        $err_info = NanoA::DebugScreen::build(@_);
+        NanoA::DebugScreen::build(@_);
     };
     eval {
         NanoA::Dispatch->dispatch();
     };
-    if ($@ && $err_info) {
-        NanoA::DebugScreen::output($err_info);
+    if ($@ && ref $@ eq 'HASH' && $@->{finished}) {
+        # just ignore
     }
 };
 
