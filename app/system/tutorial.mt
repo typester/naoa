@@ -27,7 +27,47 @@ NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI
 
 <h2 id="split_template">テンプレートの分離</h2>
 
+<p>
+コードの見通しを良くするために、テンプレートとコントローラのロジックを分離して書くこともできます。Helloworld を分離して書き直すと、以下のようになります。
+</p>
+
+<div class="pre_caption">app/hello/start.pm</div>
+<pre>
+package hello::start;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA);
+
+sub run {
+    my $app = shift;
+    return $app->render('hello/template/start', {
+        user => $app->query->param('user'),
+    });
+}
+
+1;
+</pre>
+
+<div class="pre_caption">app/hello/template/start.mt</div>
+<pre>
+こんにちは、&lt;?= $c->{user} ?&gt;さん
+</pre>
+
+<div class="column">
+<h3>.pm ファイルと .mt ファイルについて</h3>
+<p>
+NanoA では、perl ソースコードに .pm 拡張子を、テンプレートに .mt 拡張子を使用するようになっています。NanoA のディスパッチャは、.mt と .pm ファイルを検索し、自動的に実行します。また、$app->render(filename) という呼出を行うことで、.pm の中で .mt ファイルをレンダリングしたり、逆に .mt ファイルの中から .pm ファイルを実行したりすることが可能です。
+</p>
+</div>
+
 <h2 id="database">データベース接続</h2>
+
+<p>
+NanoA は標準で SQLite データベースへの接続機能を提供します。NanoA セットアップ時に自動的にデータベースが生成されるので、アプリケーションの中では、$app->db にアクセスするだけで、データベースハンドルを取得することができます。
+</p>
 
 <h2 id="config">アプリケーションの設定</h2>
 
