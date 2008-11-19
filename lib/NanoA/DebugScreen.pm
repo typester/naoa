@@ -74,7 +74,7 @@ sub output {
             $out .= join(
                 '',
                 '<li>',
-                'in ' . ($stack->{func} || ''),
+                $stack->{func} ? NanoA::escape_html("in $stack->{func}") : '',
                 ' at ',
                 $stack->{file} ? NanoA::escape_html($stack->{file}) : '',
                 ' line ',
