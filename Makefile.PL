@@ -39,18 +39,7 @@ nanoadir:
 	$(NOECHO)$(MKPATH) $(NANOADIR);
 
 nanoacgi: $(TO_INST_PM)
-	$(NOECHO)$(FULLPERLRUN) -e ' \
-		print "#!$$^X\n"; \
-		foreach my $$file (@ARGV) { \
-			local @ARGV = ($$file); \
-			while (<>) { \
-				last if /^(__END__|"ENDOFMODULE";)$$/; \
-				next if /^\s*$$/; \
-				print \
-		 } \
-		} \
-		print "1;\n";\
-	' $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
+	$(NOECHO)$(FULLPERLRUN) tools/concat.pl $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
