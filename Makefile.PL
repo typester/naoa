@@ -26,12 +26,8 @@ my @extra_files = qw(
     nanoa-conf.cgi
 );
 
-my $appfiles = join(
-    ' ',
-    File::Find::Rule->file()->name(qw(*.pm *.mt *.jpg *.css))->in('app'),
-);
-
-my $distdir = File::Spec->catfile('dist-cgi', version());
+my $version = version();
+my $distdir = File::Spec->catfile('dist-cgi', $version);
 my $postamble = <<EOM;
 NANOADIR = $distdir
 
@@ -62,13 +58,21 @@ nanoamanifest:
 	$(NOECHO)$(FULLPERLRUN) tools/manifest.pl $(NANOADIR) > $(NANOADIR)/MANIFEST
 
 nanoaapp:
+	$(NOECHO)$(MKPATH) $(NANOADIR)/app
+	(cd app && tar cf - --no-recursion `svn ls -R`) | (cd $(NANOADIR)/app && tar xf -)
+
+nanoa-dist: nanoa
 EOM
 
 $postamble .= <<"EOM";
-	\$(NOECHO) tar cf - $appfiles | (cd \$(NANOADIR) && tar xf -)
+	\$(NOECHO)(cd \$(NANOADIR) && tar czf ../nanoa-$version.tar.gz .)
+	tgz2cgi/tgz2cgi.pl --title='NanoA Installer' --end='<a href="./">Next step</a><script>window.setTimeout(function () { location = "./"; }, 5000)</script>' --delete --nph < dist-cgi/nanoa-$version.tar.gz > dist-cgi/nph-nanoa-$version-installer.cgi
+	\$(NOECHO)chmod 755 dist-cgi/nph-nanoa-$version-installer.cgi
 EOM
 
 $postamble .= <<'EOM';
+	$(NOECHO)rm -r $(NANOADIR)
+
 
 nanoa: nanoadir nanoacgi nanoaextlib nanoaapp nanoamanifest
 	$(NOECHO)$(NOOP)
