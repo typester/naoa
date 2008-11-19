@@ -16,7 +16,7 @@ do {
         if (ref($msg) eq 'HASH' && $msg->{finished}) {
             undef $err_info;
         } else {
-            $err_info = NanoA::DebugScreen::build($msg)
+            $err_info = NanoA::DebugScreen::build($msg);
         }
         die;
     };
