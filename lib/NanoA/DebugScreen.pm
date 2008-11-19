@@ -6,10 +6,9 @@ use warnings;
 # from MENTA and NanoA
 
 sub new {
-    my ($klass, @args) = @_;
+    my ($klass, $message) = @_;
     my @trace;
     
-    my $msg = $@;
     for (my $i = 1; my ($package, $file, $line) = caller($i); $i++) {
         push @trace, {
             file => $file,
@@ -21,7 +20,7 @@ sub new {
                 if $c[3];
         }
     }
-    if ($msg =~ / at ([^ ]+) line (\d+)\./
+    if ($message =~ / at ([^ ]+) line (\d+)\./
             && ($1 ne $trace[0]->{file} || $2 != $trace[0]->{line})) {
         unshift @trace, {
             file => $1,
@@ -30,8 +29,7 @@ sub new {
     }
     
     bless {
-        @args,
-        message => $msg,
+        message => $message,
         trace   => \@trace,
     }, $klass;
 }
@@ -65,7 +63,7 @@ sub _build_context {
 }
 
 sub output {
-    my $err = shift;
+    my ($err, %args) = @_;
     
     warn $err->{message};
     
@@ -90,7 +88,7 @@ sub output {
                 q(</code></pre></li>),
             );
         }
-        $out .= qq{</ol><p class="f"><span>Powered by <strong>$err->{waf_name}</strong></span>, Web application framework</p>};
+        $out .= qq{</ol><p class="f"><span>Powered by <strong>$args{waf_name}</strong></span>, Web application framework</p>};
         $out;
     };
     utf8::encode($body);

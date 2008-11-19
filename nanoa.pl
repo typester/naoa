@@ -12,12 +12,11 @@ unshift @INC, 'extlib';
 do {
     my $err_info;
     local $SIG{__DIE__} = sub {
-        if (ref($_[0]) eq 'HASH' && $_[0]->{finished}) {
+        my ($msg) = @_;
+        if (ref $msg eq 'HASH' && $msg->{finished}) {
             undef $err_info;
         } else {
-            $err_info = NanoA::DebugScreen->new(
-                waf_name => 'NanoA',
-            );
+            $err_info = NanoA::DebugScreen->new($msg);
         }
         die;
     };
@@ -26,8 +25,9 @@ do {
         NanoA::Dispatch->dispatch();
         undef $err_info;
     };
-    $err_info->output
-        if $err_info;
+    $err_info->output(
+        waf_name => 'NanoA',
+    ) if $err_info;
 };
 
 1;
