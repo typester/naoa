@@ -167,8 +167,6 @@ sub load_once {
         $LOADED{$mark_path} = 1;
         return 1;
     }
-    print STDERR "now dying : $@\n"
-        if $@;
     die $@
         if $@;
     undef;
