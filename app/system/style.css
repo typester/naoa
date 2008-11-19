@@ -87,7 +87,7 @@ body {
 
 #main .column {
     border: 1px solid gray;
-    margin: 1em;
+    margin: 1em 0;
     padding: 0 0.5em;
 }
 
