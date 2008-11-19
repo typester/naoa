@@ -12,7 +12,7 @@ sub build {
         push @trace, {
             file => $file,
             line => $line,
-            func => '',
+            func => undef,
         };
         if (my @c = caller($i + 1)) {
             $trace[-1]->{func} = $c[3]
@@ -80,10 +80,10 @@ sub output {
             $out .= join(
                 '',
                 '<li>',
-                $stack->{func},
+                'in ' . ($stack->{func} || ''),
                 ' at ',
                 $stack->{file} ? NanoA::escape_html($stack->{file}) : '',
-                ', ',
+                ' line ',
                 $stack->{line},
                 q(<pre style="background-color: #fee;color: #333;">),
                 build_context($stack->{file}, $stack->{line}),
