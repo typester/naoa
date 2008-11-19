@@ -16,7 +16,8 @@ app/hello というディレクトリを作成し、以下のようなファイ�
 <p>
 続いて、NanoA のトップページをリロードしてみましょう。hello というアプリケーションが増えているはずです (今あなたが書いたアプリケーションです) 。そのアプリケーション名をクリックすると、「こんにちは、さん」と表示されます。
 </p>
-<p>$app->query->param('user') は、クエリパラメータ「user」を読み取るためのおまじないです。nanoa.cgi/hello/?user=太郎 という URL にアクセスすると、「こんにちは、太郎さん」と表示されます。
+<p>
+nanoa.cgi/hello/?user=太郎 という URL にアクセスすると、「こんにちは、太郎さん」と表示されます。
 </p>
 <div class="column">
 <h3>クエリパーサについて</h3>
@@ -47,6 +48,9 @@ NanoA ではテンプレートエンジンに、Mojo::Template をベースに�
 <td>&lt;?=r $app->render('hello/header') ?&gt;</td>
 <td>app/hello/header.mt をインクルード</td>
 </tr>
+<tr>
+<td>? for my $row (@rows) {<br />&lt;?= $row->{name} ?&gt;<br />? }</td>
+<td>リストを表示</td>
 </table>
 </div>
 </p>
@@ -55,7 +59,7 @@ NanoA ではテンプレートエンジンに、Mojo::Template をベースに�
 <h2 id="split_template">テンプレートの分離</h2>
 
 <p>
-コードの見通しを良くするために、テンプレートとコントローラのロジックを分離して書くこともできます。Helloworld を分離して書き直すと、以下のようになります。
+コードの見通しを良くするために、テンプレートとコントローラのロジックを分離して書くこともできます。Helloworld を分離して書き直すと、以下のようになります。極めて正統的な Perl です。
 </p>
 
 <div class="pre_caption">app/hello/start.pm</div>
@@ -95,6 +99,39 @@ NanoA では、perl ソースコードに .pm 拡張子を、テンプレート�
 <p>
 NanoA は標準で SQLite データベースへの接続機能を提供します。NanoA セットアップ時に自動的にデータベースが生成されるので、アプリケーションの中では、$app->db にアクセスするだけで、データベースハンドルを取得することができます。
 </p>
+
+<div class="pre_caption">データベース使用例</div>
+<pre>
+# ユーザーテーブルを (なければ) 作成
+$app->db->do(
+    'create table if not exists user ('
+    . 'user_id integer not null primary key autoincrement,'
+    . 'user_name text not null'
+    . )'
+);
+...
+# ユーザーテーブルに行を追加
+$app->db->do(
+    'insert into user (user_name) values (?)',
+    {},
+    $app->query->name('user_name'),
+);
+...
+# ユーザーテーブルからクエリした結果をテンプレートに渡す
+$app->render('myapp/template/mytemplate', {
+    all_users => $app->db->selectall_arrayref(
+        'select user_id,user_name from user',
+        { Slice => {} },
+    ),
+});
+</pre>
+
+<div class="column">
+<h3>データベースハンドルについて</h3>
+<p>
+NanoA のデータベースハンドルは、Perl 標準のデータベースインターフェイスである <a href="http://search.cpan.org/~timb/DBI/DBI.pm">DBI</a> です。
+</p>
+</div>
 
 <h2 id="config">アプリケーションの設定</h2>
 
