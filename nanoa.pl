@@ -13,8 +13,11 @@ do {
     my $err_info;
     local $SIG{__DIE__} = sub {
         my ($msg) = @_;
-        $err_info = NanoA::DebugScreen::build($msg)
-            unless ref($msg) eq 'HASH' && $msg->{finished};
+        if (ref($msg) eq 'HASH' && $msg->{finished}) {
+            undef $err_info;
+        } else {
+            $err_info = NanoA::DebugScreen::build($msg)
+        }
         die;
     };
     local $@;
