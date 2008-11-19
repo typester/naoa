@@ -12,8 +12,7 @@ unshift @INC, 'extlib';
 do {
     my $err_info;
     local $SIG{__DIE__} = sub {
-        my ($msg) = @_;
-        if (ref($msg) eq 'HASH' && $msg->{finished}) {
+        if (ref($_[0]) eq 'HASH' && $_[0]->{finished}) {
             undef $err_info;
         } else {
             $err_info = NanoA::DebugScreen->new(
