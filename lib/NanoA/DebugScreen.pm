@@ -5,9 +5,11 @@ use warnings;
 
 # from MENTA and NanoA
 
-sub build {
-    my $msg = shift;
+sub new {
+    my ($klass, @args) = @_;
     my @trace;
+    
+    my $msg = $@;
     for (my $i = 1; my ($package, $file, $line) = caller($i); $i++) {
         push @trace, {
             file => $file,
@@ -27,10 +29,14 @@ sub build {
         };
     }
     
-    +{ message => $msg, trace => \@trace };
+    bless {
+        @args,
+        message => $msg,
+        trace   => \@trace,
+    }, $klass;
 }
 
-sub build_context {
+sub _build_context {
     my ($file, $linenum) = @_;
     my $code;
     if (-f $file) {
@@ -59,7 +65,7 @@ sub build_context {
 }
 
 sub output {
-    my ($err, $waf_name) = @_;
+    my $err = shift;
     
     warn $err->{message};
     
@@ -80,11 +86,11 @@ sub output {
                 ' line ',
                 $stack->{line},
                 q(<pre><code>),
-                build_context($stack->{file}, $stack->{line}),
+                _build_context($stack->{file}, $stack->{line}),
                 q(</code></pre></li>),
             );
         }
-        $out .= qq{</ol><p class="f"><span>Powered by <strong>$waf_name</strong></span>, Web application framework</p>};
+        $out .= qq{</ol><p class="f"><span>Powered by <strong>$err->{waf_name}</strong></span>, Web application framework</p>};
         $out;
     };
     utf8::encode($body);

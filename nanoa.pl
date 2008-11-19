@@ -16,7 +16,9 @@ do {
         if (ref($msg) eq 'HASH' && $msg->{finished}) {
             undef $err_info;
         } else {
-            $err_info = NanoA::DebugScreen::build($msg);
+            $err_info = NanoA::DebugScreen->new(
+                waf_name => 'NanoA',
+            );
         }
         die;
     };
@@ -25,7 +27,7 @@ do {
         NanoA::Dispatch->dispatch();
         undef $err_info;
     };
-    NanoA::DebugScreen::output($err_info, 'NanoA')
+    $err_info->output
         if $err_info;
 };
 
