@@ -39,10 +39,6 @@ sub run {
     my (\$app, \$c) = \@_;
     $code->();
 }
-sub run_as {
-    my (\$klass, \$app, \$c) = \@_;
-    run(\$app, \$c);
-}
 1;
 EOT
 ;

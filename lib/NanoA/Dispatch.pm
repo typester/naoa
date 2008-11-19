@@ -48,7 +48,8 @@ sub dispatch_as {
     die "could not find handler for $path nor " . $app->config->not_found . "\n"
         unless $handler_klass;
     
-    $handler_klass->run_as($app, $c);
+    my $f = \&{"$handler_klass\::run"};
+    $f->($app, $c);
 }
 
 sub load_config {

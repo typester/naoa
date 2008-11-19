@@ -1,7 +1,11 @@
 package system::plugin::counter;
 
-sub run_as {
-    my ($klass, $app, $c) = @_;
+use strict;
+use warnings;
+use utf8;
+
+sub run {
+    my ($app, $c) = @_;
     
     # 指定された名前、あるいはコントローラのパッケージ名を名前に使う
     my $counter_name = $c && $c->{name} || ref $app;
