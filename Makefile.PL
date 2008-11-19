@@ -75,7 +75,7 @@ nanoa: nanoadir nanoacgi nanoaextlib nanoaapp nanoamanifest
 
 nanoaextlib: 
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
-	(cd MENTA/vendor/lib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
+	(cd MENTA/extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
 	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
 EOM
 
