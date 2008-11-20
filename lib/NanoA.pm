@@ -21,13 +21,27 @@ BEGIN {
 
 sub new {
     my ($klass, $config) = @_;
-    my $self = bless {
+    my $self;
+    $self = bless {
         config        => $config,
         query         => sub {
             require_once('CGI/Simple.pm');
             no warnings "all"; # suppress 'used only once'
             $CGI::Simple::PARAM_UTF8 = 1;
             CGI::Simple->new();
+        },
+        session       => sub {
+            require_once('HTTP/Session.pm');
+            require_once('HTTP/Session/Store/DBM.pm');
+            require_once('HTTP/Session/State/Cookie.pm');
+            HTTP::Session->new(
+                store   => HTTP::Session::Store::DBM->new(
+                    file => join('/', $config->data_dir, 'session.dbm'),
+                ),
+                state   => HTTP::Session::State::Cookie->new(),
+                request => $self->query,
+                id      => 'HTTP::Session::ID::MD5',
+            ),
         },
         headers       => {
             -type    => 'text/html',
@@ -65,6 +79,15 @@ sub query {
     $self->{query} = $self->{query}->($self)
         if ref $self->{query} eq 'CODE';
     $self->{query};
+}
+
+sub session {
+    my $self = shift;
+    return $self->{session} = shift
+        if @_;
+    $self->{session} = $self->{session}->($self)
+        if ref $self->{session} eq 'CODE';
+    $self->{session};
 }
 
 sub header_add {
