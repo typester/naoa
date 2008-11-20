@@ -23,7 +23,12 @@ sub new {
     my ($klass, $config) = @_;
     my $self = bless {
         config        => $config,
-        query         => undef,
+        query         => sub {
+            require_once('CGI/Simple.pm');
+            no warnings "all"; # suppress 'used only once'
+            $CGI::Simple::PARAM_UTF8 = 1;
+            CGI::Simple->new();
+        },
         headers       => {
             -type    => 'text/html',
             -charset => 'utf8',
@@ -57,15 +62,8 @@ sub query {
     my $self = shift;
     return $self->{query} = shift
         if @_;
-    if ($self->{query} && ref $self->{query} eq 'CODE') {
-        $self->{query} = $self->{query}->($self);
-    }
-    unless ($self->{query}) {
-        require_once('CGI/Simple.pm');
-        no warnings "all"; # suppress 'used only once'
-        $CGI::Simple::PARAM_UTF8 = 1;
-        $self->{query} = CGI::Simple->new;
-    }
+    $self->{query} = $self->{query}->($self)
+        if ref $self->{query} eq 'CODE';
     $self->{query};
 }
 
