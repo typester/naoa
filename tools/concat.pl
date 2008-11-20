@@ -4,6 +4,7 @@ foreach my $file (@ARGV) {
     while (<>) {
         last if /^(__END__|"ENDOFMODULE";)$/;
         next if /^\s*$/;
+        next if /^use\s+(strict|warnings);$/;
         print
     }
 }
