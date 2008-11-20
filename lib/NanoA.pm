@@ -57,6 +57,9 @@ sub query {
     my $self = shift;
     return $self->{query} = shift
         if @_;
+    if ($self->{query} && ref $self->{query} eq 'CODE') {
+        $self->{query} = $self->{query}->($self);
+    }
     unless ($self->{query}) {
         require_once('CGI/Simple.pm');
         no warnings "all"; # suppress 'used only once'

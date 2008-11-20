@@ -30,23 +30,25 @@ sub _prerun {
     
     # build query object by myself and register it, since in first prerun,
     # there is no query object yet
-    do {
-        NanoA::require_once('CGI/Simple.pm');
-        local $CGI::Simple::PARAM_UTF8 = undef;
-        my $q = CGI::Simple->new();
-        # error occurs when trying to replace contents using Vars
-        for my $n ($q->param) {
-            my @v = $q->param($n);
-            if (@v >= 2) {
-                $_ = decode($charset, $_)
-                    for @v;
-                $q->param($n, \@v);
-            } else {
-                $q->param($n, decode($charset, $v[0]));
+    $app->query(
+        sub {
+            NanoA::require_once('CGI/Simple.pm');
+            local $CGI::Simple::PARAM_UTF8 = undef;
+            my $q = CGI::Simple->new();
+            # error occurs when trying to replace contents using Vars
+            for my $n ($q->param) {
+                my @v = $q->param($n);
+                if (@v >= 2) {
+                    $_ = decode($charset, $_)
+                        for @v;
+                    $q->param($n, \@v);
+                } else {
+                    $q->param($n, decode($charset, $v[0]));
+                }
             }
-        }
-        $app->query($q);
-    };
+            $q;
+        },
+    );
 }
 
 sub _postrun {
