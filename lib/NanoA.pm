@@ -27,7 +27,6 @@ sub new {
         postrun_hooks => [],
         stash   => {},
     }, $klass;
-    $config->init_app($self);
     $self;
 }
 

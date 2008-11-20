@@ -29,7 +29,7 @@ sub dispatch {
         unless $handler_klass;
     
     my $handler = $handler_klass->new($config);
-    
+    $config->init_app($handler);
     $handler->prerun();
     my $body = $handler->run();
     $handler->postrun(\$body);
