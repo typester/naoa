@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 sub dispatch {
-    my $klass = shift;
+    my $klass = shift || __PACKAGE__;
     
     my $handler_path = substr($ENV{PATH_INFO} || '/', 1);
     if ($handler_path eq '' && -d 'app/index') {

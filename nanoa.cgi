@@ -5,9 +5,9 @@ use warnings;
 
 use lib qw(lib MENTA/lib MENTA/extlib);
 
+use CGI::ExceptionManager;
 use NanoA;
 use NanoA::Config;
-use NanoA::DebugScreen;
 use NanoA::Dispatch;
 use NanoA::TemplateLoader;
 

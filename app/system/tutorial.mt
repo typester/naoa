@@ -139,18 +139,18 @@ NanoA のデータベースハンドルは、Perl 標準のデータベースイ
 
 <h2 id="mobile">ケータイ対応</h2>
 <p>
-mobile_carrier_longname 関数を呼び出すことで、携帯端末のキャリアを判定することが可能です。返り値の値は、HTTP::MobileAgent に準じます<sup>注1</sup>。
+<a href="http://search.cpan.org/~kurihara/HTTP-MobileAgent/lib/HTTP/MobileAgent.pm">HTTP:MobileAgent</a> を利用して、キャリアを判定したり、端末固有番号を取得することが可能です。
 </p>
 <pre>
 sub run {
     my $app = shift;
     ...
-    my $carrier = $app->mobile_carrier_longname;
+    my $carrier = $app->mobile_agent->carrier_longname;
     return "あなたのブラウザは $carrier です";
 }
 </pre>
 <p style="text-align: center;">
-実行例: 「あなたのブラウザは <?= $app->mobile_carrier_longname ?> です」
+実行例: 「あなたのブラウザは <?= $app->mobile_agent->carrier_longname ?> です」
 </p>
 <div>
 注1: MENTA からコピーしました thanks to tohuhirom

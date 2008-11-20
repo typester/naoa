@@ -25,6 +25,7 @@ sub new {
         },
         prerun_hooks  => [],
         postrun_hooks => [],
+        stash   => {},
     }, $klass;
     $config->init_app($self);
     $self;
@@ -192,37 +193,10 @@ sub db {
     $self->{db};
 }
 
-sub mobile_carrier {
+sub mobile_agent {
     my $self = shift;
-    return $self->{mobile_carrier}
-        if $self->{mobile_carrier};
-    my $re = sub {
-        my $DoCoMoRE = '^DoCoMo/\d\.\d[ /]';
-        my $JPhoneRE = '^(?i:J-PHONE/\d\.\d)';
-        my $VodafoneRE = '^Vodafone/\d\.\d';
-        my $VodafoneMotRE = '^MOT-';
-        my $SoftBankRE = '^SoftBank/\d\.\d';
-        my $SoftBankCrawlerRE = '^Nokia[^/]+/\d\.\d';
-        my $EZwebRE  = '^(?:KDDI-[A-Z]+\d+[A-Z]? )?UP\.Browser\/';
-        my $AirHRE = '^Mozilla/3\.0\((?:WILLCOM|DDIPOCKET)\;';
-        qr/(?:($DoCoMoRE)|($JPhoneRE|$VodafoneRE|$VodafoneMotRE|$SoftBankRE|$SoftBankCrawlerRE)|($EZwebRE)|($AirHRE))/;
-    }->();
-    if ($self->query->user_agent =~ /$re/) {
-        $self->{mobile_carrier} = $1 ? 'I' : $2 ? 'V' : $3 ? 'E' :  'H';
-    } else {
-        $self->{mobile_carrier} = 'N';
-    }
-}
-
-sub mobile_carrier_longname {
-    my $self = shift;
-    {
-        N => 'NonMobile',
-        I => 'DoCoMo',
-        E => 'EZweb',
-        V => 'Softbank',
-        H => 'AirH',
-    }->{$self->mobile_carrier()};
+    require_once('HTTP/MobileAgent.pm');
+    $self->{stash}->{'HTTP::MobileAgent'} ||= HTTP::MobileAgent->new();
 }
 
 sub read_file {

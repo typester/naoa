@@ -2,32 +2,19 @@ use strict;
 use warnings;
 use utf8;
 
+BEGIN {
+    unshift @INC, 'extlib';
+};
+
 if ($ENV{MOD_PERL}) {
     my $base_dir = $ENV{SCRIPT_FILENAME};
     $base_dir =~ s|/[^/]*$||;
     chdir $base_dir;
 }
-unshift @INC, 'extlib';
 
-do {
-    my $err_info;
-    local $SIG{__DIE__} = sub {
-        my ($msg) = @_;
-        if (ref $msg eq 'HASH' && $msg->{finished}) {
-            undef $err_info;
-        } else {
-            $err_info = NanoA::DebugScreen->new($msg);
-        }
-        die;
-    };
-    local $@;
-    eval {
-        NanoA::Dispatch->dispatch();
-        undef $err_info;
-    };
-    $err_info->output(
-        waf_name => 'NanoA',
-    ) if $err_info;
-};
+CGI::ExceptionManager->run(
+    callback   => \&NanoA::Dispatch::dispatch,
+    powered_by => 'NanoA',
+);
 
 1;
