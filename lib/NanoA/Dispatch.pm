@@ -30,9 +30,10 @@ sub dispatch {
     
     my $handler = $handler_klass->new($config);
     $config->init_app($handler);
-    $handler->prerun();
+    
+    $handler->run_hooks('prerun');
     my $body = $handler->run();
-    $handler->postrun(\$body);
+    $handler->run_hooks('postrun', \$body);
     
     $handler->print_header();
     utf8::encode($body);

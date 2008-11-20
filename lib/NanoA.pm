@@ -8,40 +8,46 @@ our $VERSION = '0.07';
 
 my %REQUIRED;
 my %LOADED;
+my %HOOKS;
 
 BEGIN {
     %REQUIRED = ();
     %LOADED = ();
+    %HOOKS = (
+        prerun  => {},
+        postrun => {},
+    );
 };
 
 sub new {
     my ($klass, $config) = @_;
     my $self = bless {
-        config  => $config,
-        query   => undef,
-        headers => {
+        config        => $config,
+        query         => undef,
+        headers       => {
             -type    => 'text/html',
             -charset => 'utf8',
         },
-        prerun_hooks  => [],
-        postrun_hooks => [],
-        stash   => {},
+        stash         => {},
     }, $klass;
     $self;
 }
 
-sub prerun {
+sub run_hooks {
     my $self = shift;
-    foreach my $h (@{$self->prerun_hooks}) {
-        $h->($self);
-    }
+    my $mode = shift;
+    my $hooks = $HOOKS{$mode}->{ref $self}
+        or return;
+    $_->($self, @_)
+        for @$hooks;
 }
 
-sub postrun {
-    my ($self, $bodyref) = @_;
-    foreach my $h (@{$self->postrun_hooks}) {
-        $h->($self, $bodyref);
-    }
+sub register_hook {
+    my ($klass, $mode, $func) = @_;
+    die "unknown hook: $mode\n"
+        unless $HOOKS{$mode};
+    my $target = $HOOKS{$mode}->{ref $klass || $klass} ||= [];
+    push @$target, $func;
 }
 
 sub query {
@@ -64,16 +70,6 @@ sub header_add {
 sub headers {
     my $self = shift;
     $self->{headers};
-}
-
-sub prerun_hooks {
-    my $self = shift;
-    $self->{prerun_hooks};
-}
-
-sub postrun_hooks {
-    my $self = shift;
-    $self->{postrun_hooks};
 }
 
 sub redirect {
