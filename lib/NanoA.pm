@@ -47,11 +47,16 @@ sub register_hook {
     die "unknown hook: $mode\n"
         unless $HOOKS{$mode};
     my $target = $HOOKS{$mode}->{ref $klass || $klass} ||= [];
+    return
+        if grep { $_ == $func } @$target;
     push @$target, $func;
+    1;
 }
 
 sub query {
     my $self = shift;
+    return $self->{query} = shift
+        if @_;
     unless ($self->{query}) {
         require_once('CGI/Simple.pm');
         no warnings "all"; # suppress 'used only once'

@@ -36,7 +36,8 @@ sub dispatch {
     $handler->run_hooks('postrun', \$body);
     
     $handler->print_header();
-    utf8::encode($body);
+    utf8::encode($body)
+         if utf8::is_utf8($body);
     print $body;
 }
 
