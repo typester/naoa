@@ -45,10 +45,6 @@ sub postrun {
     }
 }
 
-sub detach {
-    die { finished => 1 };
-}
-
 sub query {
     my $self = shift;
     unless ($self->{query}) {
@@ -85,7 +81,7 @@ sub redirect {
     my ($self, $uri, $status) = @_;
     $status ||= 302;
     print "Status: $status\nLocation: $uri\n\n";
-    $self->detach;
+    CGI::ExceptionManager::detach();
 }
 
 sub render {
