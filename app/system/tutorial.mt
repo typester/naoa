@@ -137,9 +137,53 @@ NanoA のデータベースハンドルは、Perl 標準のデータベースイ
 
 <h2 id="hooks">アプリケーション全体の共通処理</h2>
 
-<h2 id="mobile">ケータイ対応</h2>
+<h2 id="session">セッション対応</h2>
+
 <p>
-<a href="http://search.cpan.org/~kurihara/HTTP-MobileAgent/lib/HTTP/MobileAgent.pm">HTTP:MobileAgent</a> を利用して、キャリアを判定したり、端末固有番号を取得することが可能です。
+$app->session() 関数を呼ぶことで、<a href="http://d.hatena.ne.jp/tokuhirom/20081026/1224992245">HTTP::Session</a> オブジェクトを取得し、セッション処理を行うことが可能です。
+</p>
+
+<div class="pre_caption">セッションオブジェクトの取得</div>
+<pre>
+my $session = $app->session;
+</pre>
+
+<h2 id="mobile">ケータイ対応</h2>
+
+<p>
+各コントローラ (.pm ファイルまたは .mt ファイル) の中で plugin::mobile をロードすると、携帯端末にあわせて自動的に文字コードを変換して送受信するようになります。
+</p>
+
+<div class="pre_caption">start.pm (モバイル対応)</div>
+<pre>
+package hello::start;
+
+use strict;
+use warnings;
+use utf8;
+
+<b>use plugin::mobile;</b>
+
+use base qw(NanoA);
+
+sub run {
+    my $app = shift;
+    return $app->render('hello/template/start', {
+        user => $app->query->param('user'),
+    });
+}
+
+1;
+</pre>
+
+<div class="pre_caption">start.mt (モバイル対応)</div>
+<pre>
+<b>&#x3f; use plugin::mobile;</b>
+こんにちは、&lt;?= $app->query->param('user') ?&gt;さん
+</pre>
+
+<p>
+また、<a href="http://search.cpan.org/~kurihara/HTTP-MobileAgent/lib/HTTP/MobileAgent.pm">HTTP:MobileAgent</a> を利用して、キャリアを判定したり、端末固有番号を取得することが可能です。
 </p>
 <pre>
 sub run {
@@ -152,7 +196,4 @@ sub run {
 <p style="text-align: center;">
 実行例: 「あなたのブラウザは <?= $app->mobile_agent->carrier_longname ?> です」
 </p>
-<div>
-注1: MENTA からコピーしました thanks to tohuhirom
-</div>
 <?=r $app->render('system/footer') ?>
