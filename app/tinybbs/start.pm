@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 
 use plugin::mobile;
+use plugin::session;
 
 use base qw(NanoA);
 

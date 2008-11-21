@@ -30,22 +30,9 @@ sub new {
             $CGI::Simple::PARAM_UTF8 = 1;
             CGI::Simple->new();
         },
-        session       => sub {
-            require_once('HTTP/Session.pm');
-            require_once('HTTP/Session/Store/DBM.pm');
-            require_once('HTTP/Session/State/Cookie.pm');
-            HTTP::Session->new(
-                store   => HTTP::Session::Store::DBM->new(
-                    file => join('/', $config->data_dir, 'session.dbm'),
-                ),
-                state   => HTTP::Session::State::Cookie->new(),
-                request => $self->query,
-                id      => 'HTTP::Session::ID::MD5',
-            ),
-        },
-        headers       => {
+        headers       => { # prefined headers are unique (only set once)
             -type    => 'text/html',
-            -charset => 'utf8',
+            -charset => 'utf-8',
         },
         stash         => {},
     }, $klass;
@@ -81,24 +68,41 @@ sub query {
     $self->{query};
 }
 
-sub session {
+sub header {
     my $self = shift;
-    return $self->{session} = shift
-        if @_;
-    $self->{session} = $self->{session}->($self)
-        if ref $self->{session} eq 'CODE';
-    $self->{session};
-}
-
-sub header_add {
-    my ($self, %args) = @_;
-    $self->{headers}->{$_} = $args{$_}
-        for keys %args;
-}
-
-sub headers {
-    my $self = shift;
-    $self->{headers};
+    my $h = $self->{headers};
+    if (@_ == 0) {
+        return $h;
+    } elsif (@_ == 1) {
+        my $name = lc shift;
+        my $v = $h->{$name}
+            or return;
+        return wantarray ? @$v : $v->[0]
+            if ref $v eq 'ARRAY';
+        return $v;
+    } else {
+        die "Usage error: \$app->header() or \$app->header(name) or \$app->header(n1 => v1, n2 => v2)\n"
+            if @_ % 2 != 0;
+        while (@_) {
+            my $n = lc shift;
+            $n =~ s/^([^-])/-$1/;
+            my $v = shift;
+            $v = [ $v ]
+                unless ref $v eq 'ARRAY';
+            if (exists $h->{$n}) {
+                if (ref $h->{$n} eq 'ARRAY') {
+                    # exists as an array, just add
+                    push @{$h->{$n}}, @$v;
+                } else {
+                    # exists as an scalar, just replace
+                    $h->{$n} = $v->[0];
+                }
+            } else {
+                $h->{$n} = [ @$v ];
+            }
+        }
+        return $h;
+    }
 }
 
 sub redirect {
@@ -163,10 +167,10 @@ sub print_header {
         $n =~ tr/_/-/;
         if (ref $v eq 'ARRAY') {
             foreach my $vv (@$v) {
-                print "$n: $v\n";
+                print ucfirst($n), ": $vv\n";
             }
         } else {
-            print "$n: $v\n";
+            print ucfirst($n), ": $v\n";
         }
     }
     print "\n";
