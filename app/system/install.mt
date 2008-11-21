@@ -1,4 +1,4 @@
-<?=r $app->render('system/header') ?>
+<?= $app->render('system/header') ?>
 
 <h2>共有サーバへのインストール</h2>
 <p>
@@ -23,4 +23,4 @@ Subversion を使用して、<a href="http://svn.coderepos.org/share/lang/perl/N
 % mv trunk ~/public_html/nanoa
 </pre>
 
-<?=r $app->render('system/footer') ?>
+<?= $app->render('system/footer') ?>

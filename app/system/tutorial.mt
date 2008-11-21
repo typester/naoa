@@ -1,4 +1,5 @@
-<?=r $app->render('system/header') ?>
+? use plugin::mobile;
+<?= $app->render('system/header') ?>
 
 <h2 id="install">インストール</h2>
 <p>
@@ -28,7 +29,7 @@ NanoA は、クエリパーサとして <a href="http://search.cpan.org/dist/CGI
 <div class="column">
 <h3>テンプレートエンジンについて</h3>
 <p>
-NanoA ではテンプレートエンジンに、Mojo::Template をベースにした MENTA::Template を採用し、PHP ライクな記法でテンプレートを書くことができます。
+NanoA ではテンプレートエンジンに、Mojo::Template をベースにした MENTA::Template を採用し、PHP ライクな記法でテンプレートを書くことができます。文字列は自動でエスケープされるので、XSS 脆弱性を気にすることなく開発を進めることができます。
 <div class="table">
 <table>
 <caption>表. テンプレートの代表的な使い方</caption>
@@ -45,7 +46,7 @@ NanoA ではテンプレートエンジンに、Mojo::Template をベースに�
 <td>$hoge をエスケープせずに出力</td>
 </tr>
 <tr>
-<td>&lt;?=r $app->render('hello/header') ?&gt;</td>
+<td>&lt;?= $app->render('hello/header') ?&gt;</td>
 <td>app/hello/header.mt をインクルード</td>
 </tr>
 <tr>
@@ -229,4 +230,4 @@ sub run {
 <p style="text-align: center;">
 実行例: 「あなたのブラウザは <?= $app->mobile_agent->carrier_longname ?> です」
 </p>
-<?=r $app->render('system/footer') ?>
+<?= $app->render('system/footer') ?>

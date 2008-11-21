@@ -1,4 +1,4 @@
-<?=r $app->render('system/header') ?>
+<?= $app->render('system/header') ?>
 <h2>NanoA ってなに?</h2>
 <div>
 NanoA は、気軽に使えるウェブアプリケーション実行環境です。その特徴は以下のとおり。
@@ -25,4 +25,4 @@ NanoA をインストールいただきありがとうございます。現在�
 </ul>
 </div>
 
-<?=r $app->render('system/footer') ?>
+<?= $app->render('system/footer') ?>

@@ -1,4 +1,4 @@
-<?=r $app->render('example/template/header') ?>
+<?= $app->render('example/template/header') ?>
 <p>
 This is NanoA exmaple application.  Thank you for installing.
 </p>
@@ -17,4 +17,4 @@ Now comes with a shocking debug screen as well: <a href="debugscreen">see debug 
 <p>
 And finally, best wishes to you from <a href="http://labs.cybozu.co.jp/blog/kazuho/">Kazuho Oku</a>, developer of NanoA.
 </p>
-<?=r $app->render('example/template/footer') ?>
+<?= $app->render('example/template/footer') ?>

@@ -37,7 +37,7 @@ use base qw(NanoA::TemplateLoader);
 NanoA::__insert_methods(__PACKAGE__);
 sub run {
     my (\$app, \$c) = \@_;
-    $code->();
+    raw_string($code->());
 }
 1;
 EOT

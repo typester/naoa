@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my %REQUIRED;
 my %LOADED;
@@ -132,12 +132,22 @@ sub render {
 
 sub escape_html {
     my $str = shift;
+    return $$str
+        if ref $str eq 'MENTA::Template::raw_string';
     $str =~ s/&/&amp;/g;
     $str =~ s/>/&gt;/g;
     $str =~ s/</&lt;/g;
     $str =~ s/"/&quot;/g;
     $str =~ s/'/&#39;/g;
     return $str;
+}
+
+# create raw string (that does not need to be escaped)
+sub raw_string {
+    my $s = shift;
+    ref $s eq 'MENTA::Template::RawString'
+        ? $s
+            : bless \$s, 'MENTA::Template::RawString';
 }
 
 sub nanoa_uri {
@@ -242,7 +252,7 @@ sub __insert_methods {
     my $module = shift;
     no strict 'refs';
     *{$module . '::' . $_} = \&{$_}
-        for qw(escape_html);
+        for qw(raw_string escape_html);
 }
 
 "ENDOFMODULE";
