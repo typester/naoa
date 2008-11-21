@@ -58,7 +58,7 @@ sub data_dir {
         or die "nanoa-conf.cgi に data_dir が設定されていません\n";
     my $d = $1;
     my $use_htaccess = $^O =~ /win32/i ? $d !~ m|^[a-z]:[\\\/]| : $d !~ m|/|;
-    if ($use_htaccess && ! $ENV{NANOA_USE_HTACCESS}) {
+    if ($use_htaccess && ! $ENV{HTTP_NANOA_USE_HTACCESS}) {
             die << 'EOT';
 この実行環境は .htaccess ファイルによるアクセス制御をサポートしていません。
 nanoa-conf.cgi に、nanoa 配下以外のディレクトリを絶対パスで指定してください。
