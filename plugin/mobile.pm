@@ -69,4 +69,12 @@ sub _mobile_encoding {
     return 'cp932';
 }
 
+no warnings 'redefine';
+
+sub NanoA::mobile_agent {
+    my $self = shift;
+    NanoA::require_once('HTTP/MobileAgent.pm');
+    $self->{stash}->{'HTTP::MobileAgent'} ||= HTTP::MobileAgent->new();
+}
+
 1;

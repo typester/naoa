@@ -230,12 +230,6 @@ sub db {
     $self->{db};
 }
 
-sub mobile_agent {
-    my $self = shift;
-    require_once('HTTP/MobileAgent.pm');
-    $self->{stash}->{'HTTP::MobileAgent'} ||= HTTP::MobileAgent->new();
-}
-
 sub read_file {
     my $fname = shift;
     open my $fh, '<:utf8', $fname or die 'cannot read ' . $fname. ":$!";
