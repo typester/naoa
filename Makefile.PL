@@ -52,6 +52,8 @@ nanoamanifest:
 nanoaapp:
 	$(NOECHO)$(MKPATH) $(NANOADIR)/app
 	(cd app && tar cf - --no-recursion `svn ls -R`) | (cd $(NANOADIR)/app && tar xf -)
+	$(NOECHO)$(MKPATH) $(NANOADIR)/plugin
+	(cd plugin && tar cf - --no-recursion `svn ls -R`) | (cd $(NANOADIR)/plugin && tar xf -)
 
 nanoa-dist: nanoa
 EOM

@@ -6,11 +6,12 @@ use utf8;
 
 use Encode;
 
-sub import {
-    my $pkg = caller;
-    # add funcs to caller
-    NanoA::register_hook($pkg, 'prerun', \&_prerun, 0);
-    NanoA::register_hook($pkg, 'postrun', \&_postrun, 90);
+use base qw(NanoA::Plugin);
+
+sub init_plugin {
+    my ($klass, $controller) = @_;
+    NanoA::register_hook($controller, 'prerun', \&_prerun, 0);
+    NanoA::register_hook($controller, 'postrun', \&_postrun, 90);
 }
 
 sub _prerun {
@@ -50,7 +51,7 @@ sub _postrun {
     return
         if $charset eq 'utf-8';
     
-    $app->header_add(
+    $app->header(
         -charset => $charset eq 'cp932' ? 'Shift_JIS' : $charset,
     );
     $$bodyref = encode($charset, $$bodyref);

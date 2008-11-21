@@ -8,10 +8,12 @@ use HTTP::Session;
 use HTTP::Session::Store::DBM;
 use HTTP::Session::State::Cookie;
 
-sub import {
-    my $pkg = caller;
+use base qw(NanoA::Plugin);
+
+sub init_plugin {
+    my ($klass, $controller) = @_;
     # add funcs to caller
-    NanoA::register_hook($pkg, 'postrun', \&_postrun);
+    NanoA::register_hook($controller, 'postrun', \&_postrun);
 }
 
 sub _postrun {
