@@ -137,10 +137,30 @@ NanoA のデータベースハンドルは、Perl 標準のデータベースイ
 
 <h2 id="hooks">アプリケーション全体の共通処理</h2>
 
-<h2 id="session">セッション対応</h2>
+<h2 id="plugin">プラグイン機構</h2>
 
 <p>
-各コントローラ (.pm ファイルまたは .mt ファイル) の中で plugin::session をロードすると、自動的にセッションクッキーが発行されるようになります。また、$app->session() 関数を呼んで <a href="http://d.hatena.ne.jp/tokuhirom/20081026/1224992245">HTTP::Session</a> オブジェクトを取得し、認証処理等を実現可能です。
+NanoA の動作を、プラグインを使って拡張することができます。プラグインは、各コントローラ (.pm ファイルまたは .mt ファイル) で use pluginname; するだけで適用されます。
+</p>
+
+<div class="pre_caption">例. セッションプラグインの適用 (.pm)</div>
+<pre>
+use plugin::session;
+</pre>
+
+<div class="pre_caption">例. セッションプラグインの適用 (.mt)</div>
+<pre>
+&#x3f; use plugin::session;
+</pre>
+
+<p>
+また、myapp/config.pm 内で use pluginname; すれば、同ディレクトリ内の全コントローラにプラグインが適用されます。例えば、全コントローラでモバイル対応機能を有効化したい、という場合は、こちらの手法が便利です。
+</p>
+
+<h2 id="session">セッションプラグイン</h2>
+
+<p>
+セッションプラグインをロードすると、自動的にセッションクッキーが発行されるようになります。また、$app->session() 関数を呼んで HTTP::Session オブジェクトを取得し、認証処理等を実現可能です。 
 </p>
 
 <div class="pre_caption">セッション機能の有効化 (.pm)</div>
@@ -148,20 +168,23 @@ NanoA のデータベースハンドルは、Perl 標準のデータベースイ
 use plugin::session;
 </pre>
 
+<p>
 <div class="pre_caption">セッション機能の有効化 (.mt)</div>
 <pre>
 &#x3f; use plugin::session;
 </pre>
+
+</p>
 
 <div class="pre_caption">セッションオブジェクトの取得</div>
 <pre>
 my $session = $app->session;
 </pre>
 
-<h2 id="mobile">ケータイ対応</h2>
+<h2 id="mobile">モバイルプラグイン</h2>
 
 <p>
-各コントローラ (.pm ファイルまたは .mt ファイル) の中で plugin::mobile をロードすると、携帯端末にあわせて自動的に文字コードを変換して送受信するようになります。
+モバイルプラグインをロードすると、携帯端末にあわせて自動的に文字コードを変換して送受信するようになります。
 </p>
 
 <div class="pre_caption">start.pm (モバイル対応)</div>

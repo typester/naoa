@@ -11,12 +11,15 @@ use HTTP::Session::State::Cookie;
 sub import {
     my $pkg = caller;
     # add funcs to caller
-    NanoA::register_hook(
-        $pkg,
-        'postrun',
-        \&_postrun,
-    );
+    NanoA::register_hook($pkg, 'postrun', \&_postrun);
 }
+
+sub _postrun {
+    my ($app, $bodyref) = @_;
+    $app->session->header_filter($app);
+}
+
+no warnings 'redefine';
 
 sub NanoA::session {
     my $app = shift;
@@ -28,11 +31,6 @@ sub NanoA::session {
         request => $app->query,
         id      => 'HTTP::Session::ID::MD5',
     );
-}
-
-sub _postrun {
-    my ($app, $bodyref) = @_;
-    $app->session->header_filter($app);
 }
 
 1;

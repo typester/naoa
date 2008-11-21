@@ -9,16 +9,8 @@ use Encode;
 sub import {
     my $pkg = caller;
     # add funcs to caller
-    NanoA::register_hook(
-        $pkg,
-        'prerun',
-        \&_prerun,
-    );
-    NanoA::register_hook(
-        $pkg,
-        'postrun',
-        \&_postrun,
-    );
+    NanoA::register_hook($pkg, 'prerun', \&_prerun, 0);
+    NanoA::register_hook($pkg, 'postrun', \&_postrun, 90);
 }
 
 sub _prerun {

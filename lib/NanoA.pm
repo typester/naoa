@@ -42,21 +42,34 @@ sub new {
 sub run_hooks {
     my $self = shift;
     my $mode = shift;
-    my $hooks = $HOOKS{$mode}->{ref $self}
-        or return;
-    $_->($self, @_)
-        for @$hooks;
+    my $klass = ref $self;
+    my @hooks;
+    if (my $h = $HOOKS{$mode}->{$klass}) {
+        push @hooks, @$h;
+    }
+    if ($klass =~ /^([^:]+)/) {
+        if (my $h = $HOOKS{$mode}->{$1 . '::config'}) {
+            push @hooks, @$h;
+        }
+    }
+    return
+        unless @hooks;
+    $_->[0]->($self, @_)
+        for sort { $a->[1] <=> $b->[1] } @hooks;
 }
 
 sub register_hook {
-    my ($klass, $mode, $func) = @_;
-    die "unknown hook: $mode\n"
+    my ($klass, $mode, $func, $prio) = @_;
+    $prio ||= 50;
+    die 'unknown hook: ' . $mode. "\n"
         unless $HOOKS{$mode};
-    my $target = $HOOKS{$mode}->{ref $klass || $klass} ||= [];
-    return
-        if grep { $_ == $func } @$target;
-    push @$target, $func;
-    1;
+    my $hooks = $HOOKS{$mode}->{ref $klass || $klass} ||= [];
+    unless (grep { $_->[0] == $func } @$hooks) {
+        push @$hooks, [
+            $func,
+            $prio,
+        ];
+    }
 }
 
 sub query {
@@ -108,7 +121,7 @@ sub header {
 sub redirect {
     my ($self, $uri, $status) = @_;
     $status ||= 302;
-    print "Status: $status\nLocation: $uri\n\n";
+    print 'Status: ', $status, "\nLocation: " . $uri . "\n\n";
     CGI::ExceptionManager::detach();
 }
 
@@ -160,17 +173,17 @@ sub print_header {
     } else {
         $ct .= "; charset=" . delete $headers->{-charset};
     }
-    print "Content-Type: $ct\n";
+    print 'Content-Type: ', $ct, "\n";
     foreach my $n (sort keys %$headers) {
         my $v = $headers->{$n};
         $n =~ s/^-//;
         $n =~ tr/_/-/;
         if (ref $v eq 'ARRAY') {
             foreach my $vv (@$v) {
-                print ucfirst($n), ": $vv\n";
+                print ucfirst($n), ': ', $vv, "\n";
             }
         } else {
-            print ucfirst($n), ": $v\n";
+            print ucfirst($n), ': ', $v, "\n";
         }
     }
     print "\n";
@@ -188,7 +201,7 @@ sub load_once {
     $mark_path ||= $path;
     return if $LOADED{$mark_path};
     local $@;
-    if (do "$path") {
+    if (do $path) {
         $LOADED{$mark_path} = 1;
         return 1;
     }
@@ -225,7 +238,7 @@ sub mobile_agent {
 
 sub read_file {
     my $fname = shift;
-    open my $fh, '<:utf8', $fname or die "cannot read $fname:$!";
+    open my $fh, '<:utf8', $fname or die 'cannot read ' . $fname. ":$!";
     my $s = do { local $/; join '', <$fh> };
     close $fh;
     $s;
@@ -234,7 +247,7 @@ sub read_file {
 sub __insert_methods {
     my $module = shift;
     no strict 'refs';
-    *{"$module\::$_"} = \&{$_}
+    *{$module . '::' . $_} = \&{$_}
         for qw(escape_html);
 }
 
