@@ -9,6 +9,7 @@ our %Defaults;
 BEGIN {
     %Defaults = (
         secure   => 1,
+        action   => undef,
         elements => undef, # need be copied
     );
     NanoA::make_accessors(__PACKAGE__, keys %Defaults);
@@ -18,6 +19,8 @@ sub new {
     my $klass = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
     my $elements = delete $args{elements} || [];
+    die 'action アトリビュートが設定されていません'
+        unless defined $args{action};
     my $self = bless {
         %Defaults,
         %args,
@@ -39,7 +42,29 @@ sub new {
 
 sub to_html {
     my $self = shift;
-    
+    my $html = join(
+        '',
+        '<form action="',
+        NanoA::escape_html($self->action),
+        '"',
+        ($self->secure ? ' method="POST"' : ''),
+        '>',
+        '<table class="nanoa_form_table">',
+        (map {
+            join(
+                '',
+                '<tr><th>',
+                NanoA::escape_html($_->label),
+                '</th><td>',
+                ${$_->to_html},
+                '</td></tr>',
+            )
+        } grep {
+            ! ($_->tag eq 'input' && $_->type eq 'hidden')
+        } @{$self->{elements}}),
+        '</table></form>',
+    );
+    NanoA::raw_string($html);
 }
 
 sub validate {
@@ -50,7 +75,7 @@ sub validate {
             push @errors, $error;
         }
     }
-    @errors;
+    @errors ? \@errors : undef;
 }
 
 package NanoA::Form::Error;

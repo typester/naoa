@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 use NanoA;
 
@@ -10,6 +10,7 @@ BEGIN { use_ok('NanoA::Form'); };
 
 my $f = NanoA::Form->new(
     secure   => 1,
+    action   => '/action',
     elements => [
         input => {
             type       => 'text',
@@ -56,5 +57,20 @@ is_deeply($f->elements->[1]->options, [
 ok(! $f->elements->[1]->validate([ '' ]), 'ok');
 is(${$f->elements->[1]->to_html},
    '<select name="sex"><option value="" selected>-</option><option value="male">男性</option><option value="female">女性</option></select>',
+   'to_html',
+);
+
+is(${$f->to_html},
+   join(
+       '',
+       '<form action="/action" method="POST">',
+       '<table class="nanoa_form_table">',
+       '<tr><th>Username</th><td>',
+       '<input name="username" type="text" />',
+       '</td></tr>',
+       '<tr><th>Sex</th><td>',
+       '<select name="sex"><option value="" selected>-</option><option value="male">男性</option><option value="female">女性</option></select>',
+       '</td></tr></table></form>',
+   ),
    'to_html',
 );
