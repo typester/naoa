@@ -30,7 +30,7 @@ sub new {
             @{$self->{elements}},
             NanoA::Form::Element->new(
                 %{$elements->[$i + 1]},
-                tag => $elements->[$i],
+                tag => lc $elements->[$i],
             ),
         );
     }
@@ -90,11 +90,12 @@ BEGIN {
         tag        => undef,
         name       => undef,
         type       => undef,
-        option     => undef,
+        options    => undef,
         selected   => undef,
         checked    => undef,
+        value      => undef,
         # attributes below are for validation
-        dispname   => undef,
+        label      => undef,
         required   => 1,
         min_length => undef,
         max_length => undef,
@@ -114,36 +115,36 @@ sub new {
         %Defaults,
         %args,
     }, $klass;
-    $self->{dispname} ||= ucfirst($self->{name});
+    $self->{label} ||= ucfirst($self->{name});
     $self;
 }
 
 sub validate {
     my ($self, $values) = @_;
     
-    if (@$values == 0 || join('', @$values) eq '') {
+    if (@$values == 0 || ($self->tag eq 'input' && $values->[0] eq '')) {
         # is empty
         return unless $self->required;
         return NanoA::Form::Error->new(
-            message => $self->dispname . 'を入力してください',
+            message => $self->label . 'を入力してください',
             element => $self,
         );
     }
     if (my $l = $self->min_length) {
         return NanoA::Form::Error->new(
-            message => $self->dispname . 'が短すぎます',
+            message => $self->label . 'が短すぎます',
             element => $self,
         ) if grep { length($_) < $l } @$values;
     }
     if (my $l = $self->max_length) {
         return NanoA::Form::Error->new(
-            message => $self->dispname . 'が長すぎます',
+            message => $self->label . 'が長すぎます',
             element => $self,
         ) if grep { $l < length($_) } @$values;
     }
     if (my $r = $self->regexp) {
         return NanoA::Form::Error->new(
-            message => '無効な' . $self->dispname . 'です',
+            message => '無効な' . $self->label . 'です',
             element => $self,
         ) if grep { $_ !~ /$r/ }@$values;
     }
@@ -153,15 +154,44 @@ sub validate {
 
 sub to_html {
     my $self = shift;
-    '<' . join(
+    my $html = join(
         ' ',
-        $self->tag,
+        '<' . $self->tag,
         map {
-            $_ => $self->{$_}
+            $_ . '="' . NanoA::escape_html($self->{$_}) . '"',
         } grep {
-            $_ !~ /^(tag|dispname|required|min_length|max_length|regexp)$/
-        } sort keys %$self,
-    ) . '>';
+            $_ !~ /^(tag|label|required|min_length|max_length|regexp|options|selected)$/
+                and defined $self->{$_}
+            } sort keys %$self,
+    );
+    if ($self->tag eq 'input') {
+        $html .= ' />';
+    } elsif ($self->tag eq 'select') {
+        my $options = $self->options;
+        $html = join(
+            '',
+            $html,
+            '>',
+            (map {
+                join(
+                    '',
+                    '<option value="',
+                    NanoA::escape_html($options->[$_ * 2]),
+                    '"',
+                    ($options->[$_ * 2 + 1]->{selected} ? ' selected' : ''),
+                    '>',
+                    NanoA::escape_html($options->[$_ * 2 + 1]->{label}),
+                    '</option>',
+                ),
+            } 0..((@$options - 1) / 2)),
+            '</select>',
+        );
+    } elsif ($self->tag eq 'textarea') {
+        $html .= NanoA::escape_html($self->value) . '</textarea>';
+    } else {
+        die 'unexpected tag: ' . $self->tag;
+    }
+    return NanoA::raw_string($html);
 }
 
 1;

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 use NanoA;
 
@@ -20,9 +20,11 @@ my $f = NanoA::Form->new(
         },
         select => {
             name       => 'sex',
-            required   => undef,
-            option     => [ '', qw/male female/ ],
-            selected   => '',
+            options    => [
+                ''       => { label => '-',  selected => 1 },
+                'male'   => { label => '男性' },
+                'female' => { label => '女性' },
+            ],
         },
     ],
 );
@@ -33,14 +35,25 @@ is(ref $f->elements->[0], q(NanoA::Form::Element), 'element object');
 is($f->elements->[0]->tag, q(input), 'tag');
 is($f->elements->[0]->type, q(text), 'type');
 is($f->elements->[0]->name, q(username), 'name');
-is($f->elements->[0]->dispname, q(Username), 'dispname');
+is($f->elements->[0]->label, q(Username), 'label');
 is($f->elements->[0]->min_length, 6, 'min_length');
 is($f->elements->[0]->max_length, 8, 'max_length');
 like($f->elements->[0]->validate([ 'aaaaa' ])->message, qr/短すぎ/, 'min_length error');
 like($f->elements->[0]->validate([ 'aaaaaaaaa' ])->message, qr/長すぎ/, 'max_length error');
 like($f->elements->[0]->validate([ '$-13409' ])->message, qr/無効/, 'regexp error');
 ok(! $f->elements->[0]->validate([ 'michael' ]), 'ok');
+is(${$f->elements->[0]->to_html},
+   '<input name="username" type="text" />',
+   'to_html',
+);
 
-ok(! $f->elements->[1]->required, 'required');
-is_deeply($f->elements->[1]->option, [ '', qw/male female/ ], 'option');
-ok(! $f->elements->[1]->validate([]), 'ok');
+is_deeply($f->elements->[1]->options, [
+    ''     => { label => '-', selected => 1 },
+    male   => { label => '男性' },
+    female => { label => '女性' },
+], 'options');
+ok(! $f->elements->[1]->validate([ '' ]), 'ok');
+is(${$f->elements->[1]->to_html},
+   '<select name="sex"><option value="" selected>-</option><option value="male">男性</option><option value="female">女性</option></select>',
+   'to_html',
+);
