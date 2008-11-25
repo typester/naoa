@@ -28,6 +28,7 @@ my $f = NanoA::Form->new(
         },
     ],
 );
+
 is(ref $f, 'NanoA::Form', 'post-new');
 ok($f->secure, 'secure flag');
 is(scalar @{$f->elements}, 2, '# of elements');

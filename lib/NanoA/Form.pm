@@ -83,17 +83,19 @@ use strict;
 use warnings;
 use utf8;
 
-our %Defaults;
+our %Common_Defaults;
+our %Per_Tag_Attributes;
 
 BEGIN {
     %Defaults = (
         tag        => undef,
         name       => undef,
+        # attributes below are dependent to tag
         type       => undef,
         options    => undef,
-        selected   => undef,
         checked    => undef,
         value      => undef,
+        multiple   => undef,
         # attributes below are for validation
         label      => undef,
         required   => 1,
@@ -102,6 +104,11 @@ BEGIN {
         regexp     => undef,
     );
     NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    %Per_Tag_Attributes = (
+        input    => { map { ($_ => 1) } qw/type checked value/ },
+        select   => { map { ($_ => 1) } qw/multiple/ },
+        textarea => {},
+    );
 };
 
 sub new {
@@ -154,19 +161,20 @@ sub validate {
 
 sub to_html {
     my $self = shift;
+    my $tag = $self->tag;
+    my $per_tag_attr = $Per_Tag_Attributes{$tag};
     my $html = join(
         ' ',
-        '<' . $self->tag,
+        '<' . $tag,
         map {
-            $_ . '="' . NanoA::escape_html($self->{$_}) . '"',
-        } grep {
-            $_ !~ /^(tag|label|required|min_length|max_length|regexp|options|selected)$/
-                and defined $self->{$_}
-            } sort keys %$self,
+            $_ . '="' . NanoA::escape_html($self->{$_}) . '"'
+        } sort grep {
+            ($_ !~ /^(?:tag|type|options|checked|value|label|required|min_length|max_length|regexp)$/ || $per_tag_attr->{$_}) && defined $self->{$_}
+        } keys %$self,
     );
-    if ($self->tag eq 'input') {
+    if ($tag eq 'input') {
         $html .= ' />';
-    } elsif ($self->tag eq 'select') {
+    } elsif ($tag eq 'select') {
         my $options = $self->options;
         $html = join(
             '',
@@ -186,10 +194,10 @@ sub to_html {
             } 0..((@$options - 1) / 2)),
             '</select>',
         );
-    } elsif ($self->tag eq 'textarea') {
+    } elsif ($tag eq 'textarea') {
         $html .= NanoA::escape_html($self->value) . '</textarea>';
     } else {
-        die 'unexpected tag: ' . $self->tag;
+        die 'unexpected tag: ' . $tag;
     }
     return NanoA::raw_string($html);
 }
