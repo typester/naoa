@@ -64,7 +64,6 @@ sub build {
 
             # Raw Expression
             if ($type eq 'raw_expr') {
-                
                 $lines[-1] .= "\$_MENTA_T = $value; \$_MENTA .= ref \$_MENTA_T eq q(MENTA::Template::RawString) ? \$\$_MENTA_T : \$_MENTA_T;";
             }
         }

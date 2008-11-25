@@ -248,6 +248,23 @@ sub read_file {
     $s;
 }
 
+sub __make_accessor_core {
+    my $n = shift;
+    sub {
+        return $_[0]->{$n} if @_ == 1;
+        return $_[0]->{$n} = $_[1] if @_ == 2;
+        (shift)->{$n} = \@_;
+    };
+}
+
+sub make_accessors {
+    no strict 'refs';
+    my ($klass, @names) = @_;
+    for my $n (@names) {
+        *{$klass . '::' . $n} = __make_accessor_core($n);
+    }
+}
+
 sub __insert_methods {
     my $module = shift;
     no strict 'refs';
