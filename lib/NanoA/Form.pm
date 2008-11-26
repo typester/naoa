@@ -123,7 +123,7 @@ BEGIN {
         multiple   => undef,
         # attributes below are for validation
         label      => undef,
-        required   => 1,
+        required   => undef,
         min_length => undef,
         max_length => undef,
         regexp     => undef,
@@ -153,8 +153,14 @@ sub new {
 
 sub validate {
     my ($self, $values) = @_;
+    my $f = 'validate_' . $self->tag;
+    goto &$f;
+}
+
+sub validate_input {
+    my ($self, $values) = @_;
     
-    if (@$values == 0 || ($self->tag eq 'input' && $values->[0] eq '')) {
+    if (@$values == 0 || join('', @$values) eq '') {
         # is empty
         return unless $self->required;
         return NanoA::Form::Error->new(
@@ -182,6 +188,11 @@ sub validate {
     }
     
     return;
+}
+
+sub validate_select {
+    my ($self, $values) = @_;
+    
 }
 
 sub to_html {

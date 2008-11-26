@@ -15,6 +15,9 @@ my $f = NanoA::Form->new(
         input => {
             type       => 'text',
             name       => 'username',
+            class      => 'hoge_class',
+            value      => 'def"val',
+            required   => 1,
             min_length => 6,
             max_length => 8,
             regexp     => qr/^[0-9a-z_]{6,8}$/,
@@ -45,7 +48,7 @@ like($f->elements->[0]->validate([ 'aaaaaaaaa' ])->message, qr/長すぎ/, 'max_
 like($f->elements->[0]->validate([ '$-13409' ])->message, qr/無効/, 'regexp error');
 ok(! $f->elements->[0]->validate([ 'michael' ]), 'ok');
 is(${$f->elements->[0]->to_html},
-   '<input name="username" type="text" />',
+   '<input class="hoge_class" name="username" type="text" value="def&quot;val" />',
    'to_html',
 );
 
@@ -66,7 +69,7 @@ is(${$f->to_html},
        '<form action="/action" method="POST">',
        '<table class="nanoa_form_table">',
        '<tr><th>Username</th><td>',
-       '<input name="username" type="text" />',
+       '<input class="hoge_class" name="username" type="text" value="def&quot;val" />',
        '</td></tr>',
        '<tr><th>Sex</th><td>',
        '<select name="sex"><option value="" selected>-</option><option value="male">男性</option><option value="female">女性</option></select>',
