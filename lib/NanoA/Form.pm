@@ -195,7 +195,37 @@ sub _validate_choice {
 
 sub _validate_multiple_choice {
     my ($self, $values) = @_;
+    my $options = $self->{options};
     
+    my $cnt = 0;
+    for my $value (@$values) {
+        return NanoA::Form::Error->new(
+            message => '不正な入力値です',
+            field   => $self,
+        ) unless scalar grep { $value eq $_->value } @$options;
+    }
+    if (my $required = $self->required) {
+        if (ref $required eq 'ARRAY') {
+            return NanoA::Form::Error->new(
+                message => sprintf(
+                    '%sの中から %d 〜 %d 個選択してください',
+                    $self->label,
+                    @$required,
+                ),
+                field   => $self,
+            ) unless ($required->[0] <= @$values && @$values <= $required->[1]);
+        } else {
+            return NanoA::Form::Error->new(
+                message => sprintf(
+                    '%sの中から %d 個選択してください',
+                    $self->label,
+                    $required,
+                ),
+                field   => $self,
+            ) unless $required == @$values;
+        }
+    }
+    return;
 }
 
 package NanoA::Form::Field::Text;
@@ -285,7 +315,7 @@ use base qw(NanoA::Form::Field::Text); # oh,oh
 
 sub type { 'hidden' }
 
-package NanoA::Form::Field::RadioOption;
+package NanoA::Form::Field::InputOption;
 
 use strict;
 use warnings;
@@ -315,7 +345,7 @@ sub to_html {
         'input',
         \%base,
         {
-            type    => 'radio',
+            type    => $self->parent->type,
             value   => $self->{value},
             ($values
                  ? grep { $_ eq $self->{value} } @$values : $self->{checked})
@@ -339,7 +369,7 @@ sub to_html {
     return NanoA::raw_string($html);
 }
 
-package NanoA::Form::Field::Radio;
+package NanoA::Form::Field::InputSet;
 
 use strict;
 use warnings;
@@ -361,7 +391,7 @@ sub new {
         for (my $i = 0; $i < @$in; $i += 2) {
             my $value = $in->[$i];
             my $attributes = $in->[$i + 1];
-            push @options, NanoA::Form::Field::RadioOption->new(
+            push @options, NanoA::Form::Field::InputOption->new(
                 %$attributes,
                 value  => $value,
                 parent => $self,
@@ -371,8 +401,6 @@ sub new {
     $self->{options} = \@options;
     $self;
 }
-
-sub type { 'radio' }
 
 sub to_html {
     my ($self, $values) = @_;
@@ -385,9 +413,34 @@ sub to_html {
     return NanoA::raw_string($html);
 }
 
+package NanoA::Form::Field::Radio;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field::InputSet);
+
+sub type { 'radio' }
+
 sub validate {
     my ($self, $values) = @_;
     $self->_validate_choice($values);
+}
+
+package NanoA::Form::Field::Checkbox;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field::InputSet);
+
+sub type { 'checkbox' }
+
+sub validate {
+    my ($self, $values) = @_;
+    $self->_validate_multiple_choice($values);
 }
 
 package NanoA::Form::Field::SelectOption;
@@ -472,7 +525,9 @@ sub to_html {
 
 sub validate {
     my ($self, $values) = @_;
-    $self->_validate_choice($values);
+    $self->multiple
+        ? $self->_validate_multiple_choice($values)
+            : $self->_validate_choice($values);
 }
 
 1;

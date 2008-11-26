@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 36;
+use Test::More tests => 46;
 
 use lib qw(MENTA/extlib);
 use NanoA;
@@ -48,19 +48,20 @@ my $form = NanoA::Form->new(
             # validation
             required => 1,
         },
-    ],
-);
-my $dummy = << 'EOT';
         interest => {
             type => 'checkbox',
             options => [
-                perl => { label => 'perl' },
                 c    => { label => 'C/C++' },
+                perl => { label => 'perl', checked => 1 },
                 php  => { label => 'PHP' },
+                ruby => { label => 'Ruby' },
             ],
             # validation
-            required => 2,
+            required => [ 2, 3 ],
         },
+    ],
+);
+my $dummy = << 'EOT';
         comment => {
             type => 'textarea',
             # validation
@@ -72,7 +73,7 @@ EOT
 
 is(ref $form, 'NanoA::Form', 'post-new');
 ok($form->secure, 'secure flag');
-is(scalar @{$form->fields}, 3, '# of fields');
+is(scalar @{$form->fields}, 4, '# of fields');
 
 my $field = $form->fields->[0];
 is(ref $field, q(NanoA::Form::Field::Text), 'field object');
@@ -87,11 +88,11 @@ like($field->validate([ '$-13409' ])->message, qr/無効/, 'text regexp error');
 ok(! $field->validate([ 'michael' ]), 'text regexp');
 is(${$field->to_html},
    '<input class="hoge_class" name="username" type="text" value="def&quot;val" />',
-   'to_html',
+   'text to_html',
 );
 is(${$field->to_html([ 'hoge' ])},
    '<input class="hoge_class" name="username" type="text" value="hoge" />',
-   'to_html with args',
+   'text to_html 2',
 );
 
 $field = $form->fields->[1];
@@ -103,22 +104,22 @@ ok(! $field->validate([ 'male' ]), 'radio validate');
 ok(! $field->validate([ 'female' ]), 'radio validate 2');
 like(${$field->options->[0]->to_html},
      qr{<input id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>},
-     'to_html option',
+     'radio to_html',
 );
 like(${$field->to_html},
      qr{<input id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>\s*<input id=".*?" name="sex" type="radio" value="female" /><label for=".*?">女性</label>},
-     'to_html radio',
+     'radio to_html 2',
 );
 like(${$field->to_html([ 'male' ])},
      qr{<input checked="1" id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>\s*<input id=".*?" name="sex" type="radio" value="female" /><label for=".*?">女性</label>},
-     'to_html radio',
+     'radio to_html 3',
 );
 
 $field = $form->fields->[2];
 is($field->type, q(select), 'select type');
 like($field->validate([])->message, qr/選択してください/, 'select required');
 like($field->validate([ 'x' ])->message, qr/不正な/, 'select unexpected');
-like($field->validate([ '' ])->message, qr/選択してください/, 'select required 2');
+like($field->validate([ '' ])->message, qr/選択してください/, 'select required');
 like($field->validate([ qw/20 30/ ])->message, qr/不正な/, 'select multi');
 ok(! $field->validate([ 20 ]), 'select validate');
 ok(! $field->validate([ 30 ]), 'select validate 2');
@@ -159,4 +160,32 @@ is(${$field->to_html([ 20 ])},
        '</select>',
    ),
    'select to_html 3',
+);
+
+$field = $form->fields->[3];
+is($field->type, q(checkbox), 'checkbox type');
+like($field->validate([ 'hoge' ])->message, qr/不正な/, 'checkbox unexpected');
+like($field->validate([ qw/perl/ ])->message, qr/の中から 2 〜 3/, 'checkbox required 1');
+ok(! $field->validate([ qw/c perl/ ]), 'checkbox required 2');
+ok(! $field->validate([ qw/c perl ruby/ ]), 'checkbox required 3');
+like($field->validate([ qw/c perl php ruby/ ])->message, qr/の中から 2 〜 3/, 'checkbox required 4');
+like(
+    ${$field->options->[0]->to_html},
+    qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label>},
+    'checkbox to_html 1',
+);
+like(
+    ${$field->options->[1]->to_html},
+    qr{<input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label>},
+    'checkbox to_html 2',
+);
+like(
+    ${$field->to_html},
+    qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label> <input id=".*?" name="interest" type="checkbox" value="php" /><label for=".*?">PHP</label> <input id=".*?" name="interest" type="checkbox" value="ruby" /><label for=".*?">Ruby</label>},
+    'checkbox to_html 3',
+);
+like(
+    ${$field->to_html([ qw/perl php/ ])},
+    qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="php" /><label for=".*?">PHP</label> <input id=".*?" name="interest" type="checkbox" value="ruby" /><label for=".*?">Ruby</label>},
+    'checkbox to_html 3',
 );
