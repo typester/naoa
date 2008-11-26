@@ -7,6 +7,7 @@ foreach my $file (@ARGV) {
         next if /^use\s+(strict|warnings);$/;
         print
     }
+    while (<>) {}
 }
 print "1;\n";
 

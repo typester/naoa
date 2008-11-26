@@ -46,9 +46,6 @@ my $form = NanoA::Form->new(
             # validation
             required => 1,
         },
-    ],
-);
-my $dummy = << 'EOT';
         interest => {
             type => 'checkbox',
             options => [
@@ -59,6 +56,9 @@ my $dummy = << 'EOT';
             # validation
             required => 2,
         },
+    ],
+);
+my $dummy = << 'EOT';
         comment => {
             type => 'textarea',
             # validation

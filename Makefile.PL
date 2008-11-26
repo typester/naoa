@@ -35,7 +35,7 @@ EOM
 
 $postamble .= <<'EOM';
 
-EXTLIBS = MENTA/extlib/CGI/ExceptionManager.pm
+EXTLIBS = MENTA/extlib/CGI/ExceptionManager.pm MENTA/extlib/Class/Accessor/Lite.pm
 
 nanoadir: 
 	$(NOECHO)$(RM_RF) $(NANOADIR);
