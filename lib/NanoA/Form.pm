@@ -3,14 +3,15 @@ package NanoA::Form;
 use strict;
 use warnings;
 use utf8;
+use Scalar::Util;
 
 our %Defaults;
 
 BEGIN {
     %Defaults = (
-        secure   => 1,
-        action   => undef,
-        elements => undef, # need be copied
+        secure => 1,
+        action => undef,
+        fields => undef, # need to be copied
     );
     NanoA::make_accessors(__PACKAGE__, keys %Defaults);
 };
@@ -18,26 +19,37 @@ BEGIN {
 sub new {
     my $klass = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
-    my $elements = delete $args{elements} || [];
+    my $fields = delete $args{fields} || [];
     die 'action アトリビュートが設定されていません'
         unless defined $args{action};
     my $self = bless {
         %Defaults,
         %args,
-        elements => [], # filled laterwards
+        fields => [], # filled afterwards
     }, $klass;
-    die "フォームの値が tag => attributes の型式ではありません"
-        unless @$elements % 2 == 0;
-    for (my $i = 0; $i < @$elements; $i += 2) {
-        push(
-            @{$self->{elements}},
-            NanoA::Form::Element->new(
-                %{$elements->[$i + 1]},
-                tag => lc $elements->[$i],
-            ),
+    die "フィールドの値が tag => attributes の型式ではありません"
+        unless @$fields % 2 == 0;
+    for (my $i = 0; $i < @$fields; $i += 2) {
+        my $name = $fields->[$i];
+        my $opts = $fields->[$i + 1];
+        die 'フィールドの type が指定されていないか、無効です'
+            unless $opts->{type} =~ /^(text|hidden|radio|select|checkbox|textarea)$/;
+        my $field_klass = 'NanoA::Form::Field::' . ucfirst $opts->{type};
+        push @{$self->{fields}}, $field_klass->new(
+            %$opts,
+            name => $name,
         );
     }
     $self;
+}
+
+sub field {
+    my ($self, $n) = @_;
+    for my $f (@{$self->{fields}}) {
+        return $f
+            if $f->name eq $n;
+    }
+    return;
 }
 
 sub to_html {
@@ -50,8 +62,8 @@ sub to_html {
         ($self->secure ? ' method="POST"' : ''),
         '>',
         '<table class="nanoa_form_table">',
-        (map {
-            join(
+        map {
+            $_->type eq 'hidden' ? ${$_->to_html} : join(
                 '',
                 '<tr><th>',
                 NanoA::escape_html($_->label),
@@ -59,9 +71,7 @@ sub to_html {
                 ${$_->to_html},
                 '</td></tr>',
             )
-        } grep {
-            ! ($_->tag eq 'input' && $_->type eq 'hidden')
-        } @{$self->{elements}}),
+        } @{$self->{fields}},
         '</table></form>',
     );
     NanoA::raw_string($html);
@@ -70,12 +80,35 @@ sub to_html {
 sub validate {
     my ($self, $q) = @_;
     my @errors;
-    for my $e (@{$self->{elements}}) {
-        if (my $error = $e->validate([ $q->param($e->name) ])) {
+    for my $f (@{$self->{fields}}) {
+        if (my $error = $f->validate([ $q->param($f->name) ])) {
             push @errors, $error;
         }
     }
     @errors ? \@errors : undef;
+}
+
+sub _build_element {
+    my ($tag, $base, $extra, $omit, $append) = @_;
+    my %attr = (
+        (map {
+            ($_ => $base->{$_})
+        } grep {
+            ! exists $omit->{$_} && ! /^(label|required)$/
+        } keys %$base),
+        %$extra,
+    );
+    my $html = join(
+        '',
+        '<' . $tag,
+        (map {
+            ' ' . $_ . '="' . NanoA::escape_html($attr{$_}) . '"'
+        } sort grep {
+            defined $attr{$_}
+        } keys %attr),
+        $append ? ('>', $append, '</', $tag, '>') : ' />',
+    );
+    return NanoA::raw_string($html);
 }
 
 package NanoA::Form::Error;
@@ -89,153 +122,261 @@ our %Defaults;
 BEGIN {
     %Defaults = (
         message => 'form error',
-        element => undef,
+        field   => undef,
     );
     NanoA::make_accessors(__PACKAGE__, keys %Defaults);
 };
 
 sub new {
     my $klass = shift;
-    bless {
+    my $self = bless {
         %Defaults,
         @_ == 1 ? %{$_[0]} : @_,
     }, $klass;
+    $self;
 }
 
-package NanoA::Form::Element;
+package NanoA::Form::Field;
 
 use strict;
 use warnings;
 use utf8;
 
-our %Common_Defaults;
-our %Per_Tag_Attributes;
+our %Defaults;
 
 BEGIN {
     %Defaults = (
-        tag        => undef,
         name       => undef,
-        # attributes below are dependent to tag
-        type       => undef,
-        options    => undef,
-        checked    => undef,
-        value      => undef,
-        multiple   => undef,
         # attributes below are for validation
         label      => undef,
         required   => undef,
-        min_length => undef,
-        max_length => undef,
-        regexp     => undef,
     );
     NanoA::make_accessors(__PACKAGE__, keys %Defaults);
-    %Per_Tag_Attributes = (
-        input    => { map { ($_ => 1) } qw/type checked value/ },
-        select   => { map { ($_ => 1) } qw/multiple/ },
-        textarea => {},
-    );
 };
 
 sub new {
     my $klass = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
-    for my $n qw(tag name) {
-        die $n . ' アトリビュートが必要です'
-            unless $args{$n};
-    }
+    die 'name アトリビュートが必要です'
+        unless $args{name};
     my $self = bless {
         %Defaults,
         %args,
     }, $klass;
+    delete $self->{type}; # just to make sure
     $self->{label} ||= ucfirst($self->{name});
     $self;
 }
 
-sub validate {
-    my ($self, $values) = @_;
-    my $f = 'validate_' . $self->tag;
-    goto &$f;
+package NanoA::Form::Field::Text;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field);
+
+our %Defaults;
+
+BEGIN {
+    %Defaults = (
+        min_length => undef,
+        max_length => undef,
+        regexp     => undef,
+    );
+    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+};
+
+sub new {
+    my $klass = shift;
+    $klass->SUPER::new(
+        %Defaults,
+        @_ == 1 ? %{$_[0]} : @_,
+    );
 }
 
-sub validate_input {
+sub type { 'text' }
+
+sub to_html {
+    my ($self, $values) = @_;
+    return NanoA::Form::_build_element(
+        'input',
+        $self,
+        {
+            type  => $self->type,
+            $values && @$values ? (value => $values->[0]) : (),
+        },
+        \%Defaults,
+    );
+}
+
+sub validate {
     my ($self, $values) = @_;
     
-    if (@$values == 0 || join('', @$values) eq '') {
+    return NanoA::Form::Error->new(
+        message => '不正な入力値です',
+        field   => $self,
+    ) if @$values >= 2;
+    if (@$values == 0 || $values->[0] eq '') {
         # is empty
         return unless $self->required;
         return NanoA::Form::Error->new(
             message => $self->label . 'を入力してください',
-            element => $self,
+            field   => $self,
         );
     }
+    
+    my $value = $values->[0];
     if (my $l = $self->min_length) {
         return NanoA::Form::Error->new(
             message => $self->label . 'が短すぎます',
-            element => $self,
-        ) if grep { length($_) < $l } @$values;
+            field   => $self,
+        ) if length($value) < $l;
     }
     if (my $l = $self->max_length) {
         return NanoA::Form::Error->new(
             message => $self->label . 'が長すぎます',
-            element => $self,
-        ) if grep { $l < length($_) } @$values;
+            field   => $self,
+        ) if $l < length $value;
     }
     if (my $r = $self->regexp) {
         return NanoA::Form::Error->new(
             message => '無効な' . $self->label . 'です',
-            element => $self,
-        ) if grep { $_ !~ /$r/ }@$values;
+            field   => $self,
+        ) if $value !~ /$r/;
     }
     
     return;
 }
 
-sub validate_select {
-    my ($self, $values) = @_;
-    
+package NanoA::Form::Field::Hidden;
+
+use base qw(NanoA::Form::Field::Text); # oh,oh
+
+sub type { 'hidden' }
+
+package NanoA::Form::Field::RadioOption;
+
+use strict;
+use warnings;
+use utf8;
+
+BEGIN {
+    NanoA::make_accessors(__PACKAGE__, qw(parent value label checked));
+};
+
+sub new {
+    my $klass = shift;
+    my $self = bless {
+        @_ == 1 ? %{$_[0]} : @_,
+    }, $klass;
+    Scalar::Util::weaken($self->{parent});
+    $self;
 }
 
 sub to_html {
-    my $self = shift;
-    my $tag = $self->tag;
-    my $per_tag_attr = $Per_Tag_Attributes{$tag};
+    my ($self, $values) = @_;
+    my %base = (
+        %{$self->{parent}},
+        %$self,
+    );
+    $base{id} ||= 'nanoa_form_radio_' . int(rand(1000000));
+    my $html = ${NanoA::Form::_build_element(
+        'input',
+        \%base,
+        {
+            type    => 'radio',
+            value   => $self->{value},
+            ($values && grep { $_ eq $self->{value} } @$values)
+                ? (checked => 1) : (),
+        },
+        {
+            options => 1,
+            parent  => 1,
+        },
+    )};
+    $html = join(
+        '',
+        $html,
+        '<label for="',
+        NanoA::escape_html($base{id}),
+        '">',
+        NanoA::escape_html($self->{label}),
+        '</label>',
+    );
+    return NanoA::raw_string($html);
+}
+
+package NanoA::Form::Field::Radio;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field);
+
+BEGIN {
+    NanoA::make_accessors(__PACKAGE__, qw(options));
+};
+
+sub new {
+    my $klass = shift;
+    my $self = $klass->SUPER::new(@_);
+    my @options; # build new list
+    if (my $in = $self->{options}) {
+        die 'options の値が value => attributes の型式ではありません'
+            unless @$in % 2 == 0;
+        for (my $i = 0; $i < @$in; $i += 2) {
+            my $value = $in->[$i];
+            my $attributes = $in->[$i + 1];
+            push @options, NanoA::Form::Field::RadioOption->new(
+                %$attributes,
+                value  => $value,
+                parent => $self,
+            );
+        }
+    }
+    $self->{options} = \@options;
+    $self;
+}
+
+sub tag { 'input' }
+sub type { 'radio' }
+
+sub to_html {
+    my ($self, $values) = @_;
     my $html = join(
         ' ',
-        '<' . $tag,
         map {
-            $_ . '="' . NanoA::escape_html($self->{$_}) . '"'
-        } sort grep {
-            ($_ !~ /^(?:tag|type|options|checked|value|label|required|min_length|max_length|regexp)$/ || $per_tag_attr->{$_}) && defined $self->{$_}
-        } keys %$self,
+            ${$_->to_html($values)}
+        } @{$self->{options}},
     );
-    if ($tag eq 'input') {
-        $html .= ' />';
-    } elsif ($tag eq 'select') {
-        my $options = $self->options;
-        $html = join(
-            '',
-            $html,
-            '>',
-            (map {
-                join(
-                    '',
-                    '<option value="',
-                    NanoA::escape_html($options->[$_ * 2]),
-                    '"',
-                    ($options->[$_ * 2 + 1]->{selected} ? ' selected' : ''),
-                    '>',
-                    NanoA::escape_html($options->[$_ * 2 + 1]->{label}),
-                    '</option>',
-                ),
-            } 0..((@$options - 1) / 2)),
-            '</select>',
-        );
-    } elsif ($tag eq 'textarea') {
-        $html .= NanoA::escape_html($self->value) . '</textarea>';
-    } else {
-        die 'unexpected tag: ' . $tag;
-    }
     return NanoA::raw_string($html);
+}
+
+sub validate {
+    my ($self, $values) = @_;
+    
+    return NanoA::Form::Error->new(
+        message => '不正な入力値です',
+        field   => $self,
+    ) if @$values >= 2;
+    if (@$values == 0 || $values->[0] eq '') {
+        # is empty
+        return unless $self->required;
+        return NanoA::Form::Error->new(
+            message => $self->label . 'を選択してください',
+            field   => $self,
+        );
+    }
+    
+    my $value = $values->[0];
+    return NanoA::Form::Error->new(
+        message => '不正な入力値です',
+        field   => $self,
+    ) unless scalar grep { $_->value eq $value } @{$self->{options}};
+    
+    return;
 }
 
 1;
