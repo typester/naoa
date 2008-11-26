@@ -13,7 +13,7 @@ BEGIN {
         action => undef,
         fields => undef, # need to be copied
     );
-    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    Class::Accessor::Lite->mk_accessors(keys %Defaults);
 };
 
 sub new {
@@ -124,7 +124,7 @@ BEGIN {
         message => 'form error',
         field   => undef,
     );
-    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    Class::Accessor::Lite->mk_accessors(keys %Defaults);
 };
 
 sub new {
@@ -151,7 +151,7 @@ BEGIN {
         label      => undef,
         required   => undef,
     );
-    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    Class::Accessor::Lite->mk_accessors(keys %Defaults);
 };
 
 sub new {
@@ -193,6 +193,10 @@ sub _validate_choice {
     return;
 }
 
+sub _validate_multiple_choice {
+    my ($self, $values) = @_;
+}
+
 package NanoA::Form::Field::Text;
 
 use strict;
@@ -209,7 +213,7 @@ BEGIN {
         max_length => undef,
         regexp     => undef,
     );
-    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    Class::Accessor::Lite->mk_accessors(keys %Defaults);
 };
 
 sub new {
@@ -287,7 +291,7 @@ use warnings;
 use utf8;
 
 BEGIN {
-    NanoA::make_accessors(__PACKAGE__, qw(parent value label checked));
+    Class::Accessor::Lite->mk_accessors(qw(parent value label checked));
 };
 
 sub new {
@@ -343,7 +347,7 @@ use utf8;
 use base qw(NanoA::Form::Field);
 
 BEGIN {
-    NanoA::make_accessors(__PACKAGE__, qw(options));
+    Class::Accessor::Lite->mk_accessors(qw(options));
 };
 
 sub new {
@@ -392,7 +396,7 @@ use warnings;
 use utf8;
 
 BEGIN {
-    NanoA::make_accessors(__PACKAGE__, qw(value label selected));
+    Class::Accessor::Lite->mk_accessors(qw(value label selected));
 };
 
 sub new {
@@ -429,7 +433,7 @@ BEGIN {
         multiple => undef,
         options  => undef, # instantiated in constructor
     );
-    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+    Class::Accessor::Lite->mk_accessors(keys %Defaults);
 };
 
 sub new {

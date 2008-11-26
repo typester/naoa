@@ -1,13 +1,14 @@
 print "#!$^X\n";
 foreach my $file (@ARGV) {
-    local @ARGV = ($file);
-    while (<>) {
+    open my $fh, '<', $file
+        or die "open($file):$!";
+    while (<$fh>) {
         last if /^(__END__|"ENDOFMODULE";)$/;
         next if /^\s*$/;
         next if /^use\s+(strict|warnings);$/;
         print
     }
-    while (<>) {}
+    close $fh;
 }
 print "1;\n";
 

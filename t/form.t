@@ -4,7 +4,9 @@ use utf8;
 
 use Test::More tests => 36;
 
+use lib qw(MENTA/extlib);
 use NanoA;
+use Class::Accessor::Lite; # usally loaded (or bundled) in nanoa.cgi
 
 BEGIN { use_ok('NanoA::Form'); };
 
@@ -46,6 +48,9 @@ my $form = NanoA::Form->new(
             # validation
             required => 1,
         },
+    ],
+);
+my $dummy = << 'EOT';
         interest => {
             type => 'checkbox',
             options => [
@@ -56,9 +61,6 @@ my $form = NanoA::Form->new(
             # validation
             required => 2,
         },
-    ],
-);
-my $dummy = << 'EOT';
         comment => {
             type => 'textarea',
             # validation

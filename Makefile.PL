@@ -42,7 +42,7 @@ nanoadir:
 	$(NOECHO)$(MKPATH) $(NANOADIR);
 
 nanoacgi: $(TO_INST_PM)
-	$(FULLPERLRUN) tools/concat.pl $(TO_INST_PM) $(EXTLIBS) > $(NANOADIR)/nanoa.cgi
+	$(FULLPERLRUN) tools/concat.pl $(EXTLIBS) $(TO_INST_PM) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
