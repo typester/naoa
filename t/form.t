@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 46;
+use Test::More tests => 53;
 
 use lib qw(MENTA/extlib);
 use NanoA;
@@ -59,21 +59,22 @@ my $form = NanoA::Form->new(
             # validation
             required => [ 2, 3 ],
         },
-    ],
-);
-my $dummy = << 'EOT';
         comment => {
-            type => 'textarea',
+            type       => 'textarea',
+            rows       => 10,
+            cols       => 40,
+            value      => 'def"val',
             # validation
-            required => 0,
+            required   => undef,
+            min_length => 5,
+            max_length => 10,
         },
     ],
 );
-EOT
 
 is(ref $form, 'NanoA::Form', 'post-new');
 ok($form->secure, 'secure flag');
-is(scalar @{$form->fields}, 4, '# of fields');
+is(scalar @{$form->fields}, 5, '# of fields');
 
 my $field = $form->fields->[0];
 is(ref $field, q(NanoA::Form::Field::Text), 'field object');
@@ -188,4 +189,19 @@ like(
     ${$field->to_html([ qw/perl php/ ])},
     qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="php" /><label for=".*?">PHP</label> <input id=".*?" name="interest" type="checkbox" value="ruby" /><label for=".*?">Ruby</label>},
     'checkbox to_html 3',
+);
+
+$field = $form->fields->[4];
+is($field->type, q(textarea), 'textarea type');
+ok(! $field->validate([]), 'textarea required');
+like($field->validate([ 'abcd' ])->message, qr/短すぎ/, 'textarea min_length');
+like($field->validate([ 'abcdefghijk' ])->message, qr/長すぎ/, 'textarea max_length');
+ok(! $field->validate([ 'abcde' ]), 'textarea validate');
+is(${$field->to_html},
+   '<textarea cols="40" name="comment" rows="10">def&quot;val</textarea>',
+   'textarea to_html 1',
+);
+is(${$field->to_html([ qw/abcde/ ])},
+   '<textarea cols="40" name="comment" rows="10">abcde</textarea>',
+   'textarea to_html 2',
 );

@@ -228,7 +228,7 @@ sub _validate_multiple_choice {
     return;
 }
 
-package NanoA::Form::Field::Text;
+package NanoA::Form::Field::AnyText;
 
 use strict;
 use warnings;
@@ -254,8 +254,6 @@ sub new {
         @_ == 1 ? %{$_[0]} : @_,
     );
 }
-
-sub type { 'text' }
 
 sub to_html {
     my ($self, $values) = @_;
@@ -309,11 +307,51 @@ sub validate {
     return;
 }
 
+package NanoA::Form::Field::Text;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field::AnyText);
+
+sub type { 'text' }
+
 package NanoA::Form::Field::Hidden;
 
-use base qw(NanoA::Form::Field::Text); # oh,oh
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field::AnyText);
 
 sub type { 'hidden' }
+
+package NanoA::Form::Field::Textarea;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field::AnyText);
+
+sub type { 'textarea' }
+
+sub to_html {
+    my ($self, $values) = @_;
+    return NanoA::Form::_build_element(
+        'textarea',
+        $self,
+        {},
+        {
+            %NanoA::Form::Field::AnyText::Defaults,
+            value => 1,
+        },
+        NanoA::escape_html(
+            $values && @$values ? $values->[0] : $self->{value} || ''
+        ),
+    );
+}
 
 package NanoA::Form::Field::InputOption;
 
