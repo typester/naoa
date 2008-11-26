@@ -35,14 +35,14 @@ EOM
 
 $postamble .= <<'EOM';
 
-EXTLIBS = MENTA/extlib/CGI/ExceptionManager.pm MENTA/extlib/Class/Accessor/Lite.pm
+NANOA_CGI_FILES = MENTA/extlib/Class/Accessor/Lite.pm MENTA/extlib/CGI/ExceptionManager.pm lib/NanoA/Config.pm lib/NanoA/Dispatch.pm lib/NanoA/Plugin.pm lib/NanoA/TemplateLoader.pm lib/NanoA.pm nanoa.pl
 
 nanoadir: 
 	$(NOECHO)$(RM_RF) $(NANOADIR);
 	$(NOECHO)$(MKPATH) $(NANOADIR);
 
-nanoacgi: $(TO_INST_PM)
-	$(FULLPERLRUN) tools/concat.pl $(EXTLIBS) $(TO_INST_PM) > $(NANOADIR)/nanoa.cgi
+nanoacgi: $(NANOA_CGI_FILES)
+	$(FULLPERLRUN) tools/concat.pl $(NANOA_CGI_FILES) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
@@ -75,7 +75,6 @@ nanoaextlib:
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
 	(cd MENTA/extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
 	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
-	cp -f lib/MENTA/Template.pm $(NANOADIR)/extlib/MENTA/Template.pm
 EOM
 
 foreach my $file (@extra_files) {

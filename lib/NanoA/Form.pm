@@ -195,6 +195,7 @@ sub _validate_choice {
 
 sub _validate_multiple_choice {
     my ($self, $values) = @_;
+    
 }
 
 package NanoA::Form::Field::Text;
