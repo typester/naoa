@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 25;
+use Test::More tests => 36;
 
 use NanoA;
 
@@ -22,6 +22,7 @@ my $form = NanoA::Form->new(
             max_length => 8,
             regexp     => qr/^[0-9a-z_]{6,8}/,
         },
+        # TODO add test for hidden fields
         sex => {
             type    => 'radio',
             options => [
@@ -31,9 +32,6 @@ my $form = NanoA::Form->new(
             # validation
             required => 1,
         },
-    ],
-);
-my $dummy = << 'EOT';
         age => {
             type => 'select',
             options => [
@@ -48,6 +46,9 @@ my $dummy = << 'EOT';
             # validation
             required => 1,
         },
+    ],
+);
+my $dummy = << 'EOT';
         interest => {
             type => 'checkbox',
             options => [
@@ -69,7 +70,7 @@ EOT
 
 is(ref $form, 'NanoA::Form', 'post-new');
 ok($form->secure, 'secure flag');
-is(scalar @{$form->fields}, 2, '# of fields');
+is(scalar @{$form->fields}, 3, '# of fields');
 
 my $field = $form->fields->[0];
 is(ref $field, q(NanoA::Form::Field::Text), 'field object');
@@ -109,4 +110,51 @@ like(${$field->to_html},
 like(${$field->to_html([ 'male' ])},
      qr{<input checked="1" id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>\s*<input id=".*?" name="sex" type="radio" value="female" /><label for=".*?">女性</label>},
      'to_html radio',
+);
+
+$field = $form->fields->[2];
+is($field->type, q(select), 'select type');
+like($field->validate([])->message, qr/選択してください/, 'select required');
+like($field->validate([ 'x' ])->message, qr/不正な/, 'select unexpected');
+like($field->validate([ '' ])->message, qr/選択してください/, 'select required 2');
+like($field->validate([ qw/20 30/ ])->message, qr/不正な/, 'select multi');
+ok(! $field->validate([ 20 ]), 'select validate');
+ok(! $field->validate([ 30 ]), 'select validate 2');
+is(${$field->options->[0]->to_html},
+   '<option selected="1" value="">選択してください</option>',
+   'select to_html 1',
+);
+is(${$field->options->[1]->to_html},
+   '<option value="19">〜19才</option>',
+   'select to_html 2',
+);
+is(${$field->to_html},
+   join(
+       '',
+       '<select name="age">',
+       '<option selected="1" value="">選択してください</option>',
+       '<option value="19">〜19才</option>',
+       '<option value="20">20才〜29才</option>',
+       '<option value="30">30才〜39才</option>',
+       '<option value="40">40才〜49才</option>',
+       '<option value="50">50才〜59才</option>',
+       '<option value="99">60才以上</option>',
+       '</select>',
+   ),
+   'select to_html 3',
+);
+is(${$field->to_html([ 20 ])},
+   join(
+       '',
+       '<select name="age">',
+       '<option value="">選択してください</option>',
+       '<option value="19">〜19才</option>',
+       '<option selected="1" value="20">20才〜29才</option>',
+       '<option value="30">30才〜39才</option>',
+       '<option value="40">40才〜49才</option>',
+       '<option value="50">50才〜59才</option>',
+       '<option value="99">60才以上</option>',
+       '</select>',
+   ),
+   'select to_html 3',
 );

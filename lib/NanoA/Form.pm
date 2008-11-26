@@ -168,6 +168,31 @@ sub new {
     $self;
 }
 
+sub _validate_choice {
+    my ($self, $values) = @_;
+    
+    return NanoA::Form::Error->new(
+        message => '不正な入力値です',
+        field   => $self,
+    ) if @$values >= 2;
+    if (@$values == 0 || $values->[0] eq '') {
+        # is empty
+        return unless $self->required;
+        return NanoA::Form::Error->new(
+            message => $self->label . 'を選択してください',
+            field   => $self,
+        );
+    }
+    
+    my $value = $values->[0];
+    return NanoA::Form::Error->new(
+        message => '不正な入力値です',
+        field   => $self,
+    ) unless scalar grep { $_->value eq $value } @{$self->{options}};
+    
+    return;
+}
+
 package NanoA::Form::Field::Text;
 
 use strict;
@@ -287,12 +312,14 @@ sub to_html {
         {
             type    => 'radio',
             value   => $self->{value},
-            ($values && grep { $_ eq $self->{value} } @$values)
+            ($values
+                 ? grep { $_ eq $self->{value} } @$values : $self->{checked})
                 ? (checked => 1) : (),
         },
         {
             options => 1,
             parent  => 1,
+            checked => 1,
         },
     )};
     $html = join(
@@ -340,7 +367,6 @@ sub new {
     $self;
 }
 
-sub tag { 'input' }
 sub type { 'radio' }
 
 sub to_html {
@@ -356,27 +382,92 @@ sub to_html {
 
 sub validate {
     my ($self, $values) = @_;
-    
-    return NanoA::Form::Error->new(
-        message => '不正な入力値です',
-        field   => $self,
-    ) if @$values >= 2;
-    if (@$values == 0 || $values->[0] eq '') {
-        # is empty
-        return unless $self->required;
-        return NanoA::Form::Error->new(
-            message => $self->label . 'を選択してください',
-            field   => $self,
-        );
+    $self->_validate_choice($values);
+}
+
+package NanoA::Form::Field::SelectOption;
+
+use strict;
+use warnings;
+use utf8;
+
+BEGIN {
+    NanoA::make_accessors(__PACKAGE__, qw(value label selected));
+};
+
+sub new {
+    my $klass = shift;
+    my $self = bless {
+        @_ == 1 ? %{$_[0]} : @_,
+    }, $klass;
+    $self;
+}
+
+sub to_html {
+    my ($self, $values) = @_;
+    return NanoA::Form::_build_element(
+        'option',
+        $self,
+        ($values ? grep { $_ eq $self->{value} } @$values : $self->{selected})
+            ? { selected => 1 } : {},
+        { selected => 1 },
+        $self->{label},
+    );
+}
+
+package NanoA::Form::Field::Select;
+
+use strict;
+use warnings;
+use utf8;
+
+use base qw(NanoA::Form::Field);
+our %Defaults;
+
+BEGIN {
+    %Defaults = (
+        multiple => undef,
+        options  => undef, # instantiated in constructor
+    );
+    NanoA::make_accessors(__PACKAGE__, keys %Defaults);
+};
+
+sub new {
+    my $klass = shift;
+    my $self = $klass->SUPER::new(@_);
+    my @options; # build new list
+    if (my $in = $self->{options}) {
+        die 'options の値が value => attributes の型式ではありません'
+            unless @$in % 2 == 0;
+        for (my $i = 0; $i < @$in; $i += 2) {
+            my $value = $in->[$i];
+            my $attributes = $in->[$i + 1];
+            push @options, NanoA::Form::Field::SelectOption->new(
+                %$attributes,
+                value  => $value,
+            );
+        }
     }
-    
-    my $value = $values->[0];
-    return NanoA::Form::Error->new(
-        message => '不正な入力値です',
-        field   => $self,
-    ) unless scalar grep { $_->value eq $value } @{$self->{options}};
-    
-    return;
+    $self->{options} = \@options;
+    $self;
+}
+
+sub type { 'select' }
+
+sub to_html {
+    my ($self, $values) = @_;
+    return NanoA::Form::_build_element(
+        'select',
+        $self,
+        {},
+        { options => 1, },
+        join('', map { ${$_->to_html($values)} } @{$self->{options}}),
+    );
+}
+
+sub validate {
+    my ($self, $values) = @_;
+    $self->_validate_choice($values);
 }
 
 1;
