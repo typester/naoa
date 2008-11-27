@@ -75,6 +75,7 @@ nanoaextlib:
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
 	(cd MENTA/extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
 	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
+	(cd lib && tar cf - NanoA/Form.pm) | (cd $(NANOADIR)/extlib && tar xf -)
 EOM
 
 foreach my $file (@extra_files) {
