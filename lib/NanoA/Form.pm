@@ -52,8 +52,8 @@ sub field {
     return;
 }
 
-sub to_html {
-    my $self = shift;
+sub render {
+    my ($self, $values) = shift;
     my $html = join(
         '',
         '<form action="',
@@ -63,12 +63,12 @@ sub to_html {
         '>',
         '<table class="nanoa_form_table">',
         map {
-            $_->type eq 'hidden' ? ${$_->to_html} : join(
+            $_->type eq 'hidden' ? ${$_->render} : join(
                 '',
                 '<tr><th>',
                 NanoA::escape_html($_->label),
                 '</th><td>',
-                ${$_->to_html},
+                ${$_->render},
                 '</td></tr>',
             )
         } @{$self->{fields}},
@@ -234,11 +234,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field);
-
+our @ISA;
 our %Defaults;
 
 BEGIN {
+    @ISA = qw(NanoA::Form::Field);
     %Defaults = (
         min_length => undef,
         max_length => undef,
@@ -255,7 +255,7 @@ sub new {
     );
 }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'input',
@@ -313,7 +313,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field::AnyText);
+our @ISA;
+
+BEGIN {
+    @ISA = qw(NanoA::Form::Field::AnyText);
+};
 
 sub type { 'text' }
 
@@ -323,7 +327,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field::AnyText);
+our @ISA;
+
+BEGIN {
+    @ISA = qw(NanoA::Form::Field::AnyText);
+};
 
 sub type { 'hidden' }
 
@@ -333,11 +341,15 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field::AnyText);
+our @ISA;
+
+BEGIN {
+    @ISA = qw(NanoA::Form::Field::AnyText);
+};
 
 sub type { 'textarea' }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'textarea',
@@ -372,7 +384,7 @@ sub new {
     $self;
 }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     my %base = (
         %{$self->{parent}},
@@ -413,9 +425,10 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field);
+our @ISA;
 
 BEGIN {
+    @ISA = qw(NanoA::Form::Field);
     Class::Accessor::Lite->mk_accessors(qw(options));
 };
 
@@ -440,12 +453,12 @@ sub new {
     $self;
 }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     my $html = join(
         ' ',
         map {
-            ${$_->to_html($values)}
+            ${$_->render($values)}
         } @{$self->{options}},
     );
     return NanoA::raw_string($html);
@@ -457,7 +470,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field::InputSet);
+our @ISA;
+
+BEGIN {
+    @ISA = qw(NanoA::Form::Field::InputSet);
+};
 
 sub type { 'radio' }
 
@@ -472,7 +489,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field::InputSet);
+our @ISA;
+
+BEGIN {
+    @ISA = qw(NanoA::Form::Field::InputSet);
+};
 
 sub type { 'checkbox' }
 
@@ -499,7 +520,7 @@ sub new {
     $self;
 }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'option',
@@ -517,10 +538,11 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA::Form::Field);
+our @ISA;
 our %Defaults;
 
 BEGIN {
+    @ISA = qw(NanoA::Form::Field);
     %Defaults = (
         multiple => undef,
         options  => undef, # instantiated in constructor
@@ -550,14 +572,14 @@ sub new {
 
 sub type { 'select' }
 
-sub to_html {
+sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'select',
         $self,
         {},
         { options => 1, },
-        join('', map { ${$_->to_html($values)} } @{$self->{options}}),
+        join('', map { ${$_->render($values)} } @{$self->{options}}),
     );
 }
 
