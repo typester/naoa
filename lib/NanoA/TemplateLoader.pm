@@ -4,7 +4,10 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(NanoA);
+our @ISA;
+BEGIN {
+    @ISA = qw(NanoA);
+};
 
 sub __load {
     my ($config, $module, $path) = @_;
@@ -33,7 +36,10 @@ package $module;
 use strict;
 use warnings;
 use utf8;
-use base qw(NanoA::TemplateLoader);
+our \@ISA;
+BEGIN {
+    \@ISA = qw(NanoA::TemplateLoader);
+};
 NanoA::__insert_methods(__PACKAGE__);
 sub run {
     my (\$app, \$c) = \@_;
