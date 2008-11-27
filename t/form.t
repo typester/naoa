@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 53;
+use Test::More tests => 58;
 
 use lib qw(MENTA/extlib);
 use NanoA;
@@ -78,7 +78,7 @@ my $form = NanoA::Form->new(
 
 is(ref $form, 'NanoA::Form', 'post-new');
 ok($form->secure, 'secure flag');
-is(scalar @{$form->fields}, 5, '# of fields');
+is(scalar @{$form->fields}, 6, '# of fields');
 
 my $field = $form->fields->[0];
 is(ref $field, q(NanoA::Form::Field::Text), 'field object');
