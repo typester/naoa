@@ -20,8 +20,10 @@ sub new {
     my $klass = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
     my $fields = delete $args{fields} || [];
-    die 'action アトリビュートが設定されていません'
-        unless defined $args{action};
+    for my $n qw(action) {
+        die $n . ' アトリビュートが設定されていません'
+            unless defined $args{$n};
+    }
     my $self = bless {
         %Defaults,
         %args,
@@ -52,8 +54,10 @@ sub field {
     return;
 }
 
+# the default renderer
 sub render {
-    my ($self, $values) = shift;
+    my ($self, $app) = @_;
+    
     my $html = join(
         '',
         '<form action="',
@@ -62,7 +66,7 @@ sub render {
         ($self->secure ? ' method="POST"' : ''),
         '>',
         '<table class="nanoa_form_table">',
-        map {
+        (map {
             $_->type eq 'hidden' ? ${$_->render} : join(
                 '',
                 '<tr><th>',
@@ -71,17 +75,17 @@ sub render {
                 ${$_->render},
                 '</td></tr>',
             )
-        } @{$self->{fields}},
+        } @{$self->{fields}}),
         '</table></form>',
     );
     NanoA::raw_string($html);
 }
 
 sub validate {
-    my ($self, $q) = @_;
+    my ($self, $query) = @_;
     my @errors;
     for my $f (@{$self->{fields}}) {
-        if (my $error = $f->validate([ $q->param($f->name) ])) {
+        if (my $error = $f->validate([ $query->param($f->name) ])) {
             push @errors, $error;
         }
     }

@@ -31,6 +31,7 @@ sub __compile {
     $t->parse(NanoA::read_file($path));
     $t->build();
     my $code = $t->code();
+    my $global = $t->global();
     $code = << "EOT";
 package $module;
 use strict;
@@ -41,6 +42,7 @@ BEGIN {
     \@ISA = qw(NanoA::TemplateLoader);
 };
 NanoA::__insert_methods(__PACKAGE__);
+$global
 sub run {
     my (\$app, \$c) = \@_;
     raw_string($code->());
