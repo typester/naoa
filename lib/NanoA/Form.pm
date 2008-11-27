@@ -57,6 +57,10 @@ sub field {
 # the default renderer
 sub render {
     my ($self, $app) = @_;
+    my $query = $app->query;
+    
+    my $do_validate = $query->request_method eq 'POST'
+            || (! $self->secure && %{$query->Vars});
     
     my $html = join(
         '',
@@ -67,29 +71,66 @@ sub render {
         '>',
         '<table class="nanoa_form_table">',
         (map {
-            $_->type eq 'hidden' ? ${$_->render} : join(
-                '',
-                '<tr><th>',
-                NanoA::escape_html($_->label),
-                '</th><td>',
-                ${$_->render},
-                '</td></tr>',
-            )
+            sub {
+                my $field = shift;
+                my @values = $query->param($_->name);
+                if ($field->type eq 'hidden') {
+                    return ${$_->render(\@values)};
+                }
+                my @r = (
+                    '<tr><th>',
+                    NanoA::escape_html($field->label),
+                    '</th><td>',
+                    ${$field->render(\@values)},
+                );
+                if ($do_validate) {
+                    print STDERR "validating: ", $field->name, "\n";
+                    if (my $err = $field->validate(\@values)) {
+                        push(
+                            @r,
+                            '<div class="nanoa_form_error">',
+                            NanoA::escape_html('※' . $err->message),
+                            '</div>',
+                        );
+                    }
+                }
+                push @r, '</td></tr>';
+                @r;
+            }->($_)
         } @{$self->{fields}}),
+        $self->secure
+            ? (
+                '<input type="hidden" name="__nanoa_csrf_key" value="',
+                # TODO: use a different id
+                NanoA::escape_html($app->session->session_id),
+                '" />',
+            ) : (),
+        '<tr><th></th><td><input type="submit" value="投稿する" /></td></tr>',
         '</table></form>',
     );
     NanoA::raw_string($html);
 }
 
 sub validate {
-    my ($self, $query) = @_;
-    my @errors;
+    my ($self, $app) = @_;
+    my $query = $app->query;
+    
     for my $f (@{$self->{fields}}) {
         if (my $error = $f->validate([ $query->param($f->name) ])) {
-            push @errors, $error;
+            return;
         }
     }
-    @errors ? \@errors : undef;
+    if ($self->secure) {
+        my $ok;
+        if (my $csrf_key = $query->param('__nanoa_csrf_key')) {
+            if ($csrf_key eq $app->session->session_id) {
+                $ok = 1;
+            }
+        }
+        return
+            unless $ok;
+    }
+    1;
 }
 
 sub _build_element {
@@ -110,7 +151,7 @@ sub _build_element {
         } sort grep {
             defined $attr{$_}
         } keys %attr),
-        $append ? ('>', $append, '</', $tag, '>') : ' />',
+        defined $append ? ('>', $append, '</', $tag, '>') : ' />',
     );
     return NanoA::raw_string($html);
 }
@@ -253,17 +294,28 @@ BEGIN {
 
 sub new {
     my $klass = shift;
-    $klass->SUPER::new(
+    my $self = $klass->SUPER::new(
         %Defaults,
         @_ == 1 ? %{$_[0]} : @_,
     );
+    if (my $r = $self->regexp) {
+        # special mappings
+        if (! ref($r) && $r eq 'email') {
+            # from http://www.tt.rim.or.jp/~canada/comp/cgi/tech/mailaddrmatch/
+            $self->regexp(qr/^[\x01-\x7F]+@(([-a-z0-9]+\.)*[a-z]+|\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])/oi);
+        }
+    }
+    $self;
 }
 
 sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'input',
-        $self,
+        {
+            class => 'nanoa_form_field_' . $self->type,
+            %$self,
+        },
         {
             type  => $self->type,
             $values && @$values ? (value => $values->[0]) : (),
@@ -357,7 +409,10 @@ sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'textarea',
-        $self,
+        {
+            class => 'nanoa_form_field_' . $self->type,
+            %$self,
+        },
         {},
         {
             %NanoA::Form::Field::AnyText::Defaults,
@@ -395,6 +450,7 @@ sub render {
         %$self,
     );
     $base{id} ||= 'nanoa_form_radio_' . int(rand(1000000));
+    $base{class} ||=  'nanoa_form_field_' . $self->parent->type;
     my $html = ${NanoA::Form::_build_element(
         'input',
         \%base,
@@ -580,7 +636,12 @@ sub render {
     my ($self, $values) = @_;
     return NanoA::Form::_build_element(
         'select',
-        $self,
+        {
+            class => $self->multiple
+                ? 'nanoa_form_field_select_multiple'
+                    : 'nanoa_form_field_select',
+            %$self,
+        },
         {},
         { options => 1, },
         join('', map { ${$_->render($values)} } @{$self->{options}}),

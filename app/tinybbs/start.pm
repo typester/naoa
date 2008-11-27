@@ -5,25 +5,51 @@ use warnings;
 use utf8;
 
 use plugin::mobile;
+use plugin::form;
 
 use base qw(NanoA);
 
+define_form(
+    fields => [
+        title => {
+            type       => 'text',
+            label      => 'タイトル',
+            # validation
+            required   => 1,
+            max_length => 16,
+        },
+        body  => {
+            type       => 'textarea',
+            label      => 'メッセージ',
+            # validation
+            required   => 1,
+        },
+        email => {
+            type       => 'text',
+            label      => 'メールアドレス',
+            # validation
+            required   => 1,
+            regexp     => 'email',
+        },
+    ],
+);
+
 sub run {
     my $app = shift;
-    my $q = $app->query;
+    my $query = $app->query;
     
     # ignore errors, may exist
     $app->db->do(
         'create table bbs (id integer not null primary key autoincrement,title varchar(255),body text)',
     );
 
-    if ($app->query->request_method eq 'POST') {
+    if ($query->request_method eq 'POST' && form->validate($app)) {
         # insert
         $app->db->do(
             'insert into bbs (title,body) values (?,?)',
             {},
-            $app->query->param('title'),
-            $app->query->param('body'),
+            $query->param('title'),
+            $query->param('body'),
         );
         # redirect
         $app->redirect(

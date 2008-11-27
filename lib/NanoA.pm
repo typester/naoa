@@ -120,6 +120,9 @@ sub header {
 
 sub redirect {
     my ($self, $uri, $status) = @_;
+    unless ($uri) {
+        $uri = nanoa_uri() . '/' . package_to_path(ref $self);
+    }
     $status ||= 302;
     print 'Status: ', $status, "\nLocation: " . $uri . "\n\n";
     CGI::ExceptionManager::detach();
@@ -128,6 +131,13 @@ sub redirect {
 sub render {
     my ($self, $path, $c) = @_;
     return NanoA::Dispatch->dispatch_as($path, $self, $c);
+}
+
+sub package_to_path {
+    my $pkg = shift;
+    $pkg =~ s|::|/|g;
+    $pkg =~ s|/start||;
+    $pkg;
 }
 
 sub escape_html {

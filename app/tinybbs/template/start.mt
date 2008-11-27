@@ -1,21 +1,16 @@
-<html>
-<head>
-<title>Test BBS</title>
-</head>
-<body>
-<form method="POST">
-Title: <input type="text" name="title" size="40" /><br />
-Body:<br />
-<textarea name="body" rows="10" cols="60">
-</textarea>
-<input type="submit" value="Submit" />
-</form>
+<?= $app->render('system/header') ?>
+<h2>サンプル掲示板</h2>
+
+<?= $app->form->render($app) ?>
+
 ? for my $m (@{$c->{messages}}) {
+
 <hr />
-<h2><?= $m->{id} ?>. <?= $m->{title} ?></h2>
+<h3><?= $m->{id} ?>. <?= $m->{title} ?></h3>
 <?= $m->{body} ?>
+
 ? }
+
 <hr />
 <a href="http://coderepos.org/share/browser/lang/perl/NanoA/trunk/app/tinybbs">view source code</a>
-</body>
-</html>
+<?= $app->render('system/footer') ?>

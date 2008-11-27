@@ -114,7 +114,7 @@ body {
     background: #eee;
 }
 
-#main table {
+#main .table table {
     border: 1px solid gray;
     border-collapse: collapse;
     margin: 0.5em auto;
@@ -124,7 +124,7 @@ body {
     font-weight: bold;
 }
 
-#main table th {
+#main .table th {
     background: #ccc;
     border: 1px solid gray;
     border-collapse: collapse;
@@ -132,7 +132,7 @@ body {
     text-align: center;
 }
 
-#main table td {
+#main .table td {
     border: 1px solid gray;
     border-collapse: collapse;
     padding: 0.2em 0.3em;
