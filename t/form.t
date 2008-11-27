@@ -24,7 +24,6 @@ my $form = NanoA::Form->new(
             max_length => 8,
             regexp     => qr/^[0-9a-z_]{6,8}/,
         },
-        # TODO add test for hidden fields
         sex => {
             type    => 'radio',
             options => [
@@ -69,6 +68,11 @@ my $form = NanoA::Form->new(
             min_length => 5,
             max_length => 10,
         },
+        unique_key => {
+            type     => 'hidden',
+            # validation
+            required => 1,
+        },
     ],
 );
 
@@ -87,13 +91,13 @@ like($field->validate([ 'aaaaa' ])->message, qr/短すぎ/, 'text min_length err
 like($field->validate([ 'aaaaaaaaa' ])->message, qr/長すぎ/, 'text max_length error');
 like($field->validate([ '$-13409' ])->message, qr/無効/, 'text regexp error');
 ok(! $field->validate([ 'michael' ]), 'text regexp');
-is(${$field->to_html},
+is(${$field->render},
    '<input class="hoge_class" name="username" type="text" value="def&quot;val" />',
-   'text to_html',
+   'text render',
 );
-is(${$field->to_html([ 'hoge' ])},
+is(${$field->render([ 'hoge' ])},
    '<input class="hoge_class" name="username" type="text" value="hoge" />',
-   'text to_html 2',
+   'text render 2',
 );
 
 $field = $form->fields->[1];
@@ -103,17 +107,17 @@ like($field->validate([ 'nonexistent' ])->message, qr/不正な/, 'radio unexpec
 like($field->validate([ qw/male female/ ])->message, qr/不正な/, 'radio multi');
 ok(! $field->validate([ 'male' ]), 'radio validate');
 ok(! $field->validate([ 'female' ]), 'radio validate 2');
-like(${$field->options->[0]->to_html},
+like(${$field->options->[0]->render},
      qr{<input id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>},
-     'radio to_html',
+     'radio render',
 );
-like(${$field->to_html},
+like(${$field->render},
      qr{<input id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>\s*<input id=".*?" name="sex" type="radio" value="female" /><label for=".*?">女性</label>},
-     'radio to_html 2',
+     'radio render 2',
 );
-like(${$field->to_html([ 'male' ])},
+like(${$field->render([ 'male' ])},
      qr{<input checked="1" id=".*?" name="sex" type="radio" value="male" /><label for=".*?">男性</label>\s*<input id=".*?" name="sex" type="radio" value="female" /><label for=".*?">女性</label>},
-     'radio to_html 3',
+     'radio render 3',
 );
 
 $field = $form->fields->[2];
@@ -124,15 +128,15 @@ like($field->validate([ '' ])->message, qr/選択してください/, 'select re
 like($field->validate([ qw/20 30/ ])->message, qr/不正な/, 'select multi');
 ok(! $field->validate([ 20 ]), 'select validate');
 ok(! $field->validate([ 30 ]), 'select validate 2');
-is(${$field->options->[0]->to_html},
+is(${$field->options->[0]->render},
    '<option selected="1" value="">選択してください</option>',
-   'select to_html 1',
+   'select render 1',
 );
-is(${$field->options->[1]->to_html},
+is(${$field->options->[1]->render},
    '<option value="19">〜19才</option>',
-   'select to_html 2',
+   'select render 2',
 );
-is(${$field->to_html},
+is(${$field->render},
    join(
        '',
        '<select name="age">',
@@ -145,9 +149,9 @@ is(${$field->to_html},
        '<option value="99">60才以上</option>',
        '</select>',
    ),
-   'select to_html 3',
+   'select render 3',
 );
-is(${$field->to_html([ 20 ])},
+is(${$field->render([ 20 ])},
    join(
        '',
        '<select name="age">',
@@ -160,7 +164,7 @@ is(${$field->to_html([ 20 ])},
        '<option value="99">60才以上</option>',
        '</select>',
    ),
-   'select to_html 3',
+   'select render 4',
 );
 
 $field = $form->fields->[3];
@@ -171,24 +175,24 @@ ok(! $field->validate([ qw/c perl/ ]), 'checkbox required 2');
 ok(! $field->validate([ qw/c perl ruby/ ]), 'checkbox required 3');
 like($field->validate([ qw/c perl php ruby/ ])->message, qr/の中から 2 〜 3/, 'checkbox required 4');
 like(
-    ${$field->options->[0]->to_html},
+    ${$field->options->[0]->render},
     qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label>},
-    'checkbox to_html 1',
+    'checkbox render 1',
 );
 like(
-    ${$field->options->[1]->to_html},
+    ${$field->options->[1]->render},
     qr{<input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label>},
-    'checkbox to_html 2',
+    'checkbox render 2',
 );
 like(
-    ${$field->to_html},
+    ${$field->render},
     qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label> <input id=".*?" name="interest" type="checkbox" value="php" /><label for=".*?">PHP</label> <input id=".*?" name="interest" type="checkbox" value="ruby" /><label for=".*?">Ruby</label>},
-    'checkbox to_html 3',
+    'checkbox render 3',
 );
 like(
-    ${$field->to_html([ qw/perl php/ ])},
+    ${$field->render([ qw/perl php/ ])},
     qr{<input id=".*?" name="interest" type="checkbox" value="c" /><label for=".*?">C/C\+\+</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="perl" /><label for=".*?">perl</label> <input checked="1" id=".*?" name="interest" type="checkbox" value="php" /><label for=".*?">PHP</label> <input id=".*?" name="interest" type="checkbox" value="ruby" /><label for=".*?">Ruby</label>},
-    'checkbox to_html 3',
+    'checkbox render 4',
 );
 
 $field = $form->fields->[4];
@@ -197,11 +201,24 @@ ok(! $field->validate([]), 'textarea required');
 like($field->validate([ 'abcd' ])->message, qr/短すぎ/, 'textarea min_length');
 like($field->validate([ 'abcdefghijk' ])->message, qr/長すぎ/, 'textarea max_length');
 ok(! $field->validate([ 'abcde' ]), 'textarea validate');
-is(${$field->to_html},
+is(${$field->render},
    '<textarea cols="40" name="comment" rows="10">def&quot;val</textarea>',
-   'textarea to_html 1',
+   'textarea render 1',
 );
-is(${$field->to_html([ qw/abcde/ ])},
+is(${$field->render([ qw/abcde/ ])},
    '<textarea cols="40" name="comment" rows="10">abcde</textarea>',
-   'textarea to_html 2',
+   'textarea render 2',
+);
+
+$field = $form->fields->[5];
+is($field->type, q(hidden), 'hidden type');
+like($field->validate([])->message, qr/を入力してください/, 'hidden required');
+ok(! $field->validate([ 'abc' ]), 'hidden validate');
+is(${$field->render},
+   '<input name="unique_key" type="hidden" />',
+   'hidden render 1',
+);
+is(${$field->render([ qw/abcde/ ])},
+   '<input name="unique_key" type="hidden" value="abcde" />',
+   'hidden render 1',
 );
