@@ -9,7 +9,7 @@ use plugin::form;
 
 use base qw(NanoA);
 
-define_form(
+define_form
     fields => [
         title => {
             type       => 'text',
@@ -31,8 +31,7 @@ define_form(
             required   => 1,
             regexp     => 'email',
         },
-    ],
-);
+    ];
 
 sub run {
     my $app = shift;
@@ -51,10 +50,8 @@ sub run {
             $query->param('title'),
             $query->param('body'),
         );
-        # redirect
-        $app->redirect(
-            $app->nanoa_uri . '/tinybbs/',
-        );
+        # redirect to myself
+        $app->redirect;
     }
     
     return $app->render('tinybbs/template/start', {

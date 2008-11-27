@@ -136,7 +136,7 @@ sub render {
 sub package_to_path {
     my $pkg = shift;
     $pkg =~ s|::|/|g;
-    $pkg =~ s|/start||;
+    $pkg =~ s|/start$|/|;
     $pkg;
 }
 

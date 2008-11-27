@@ -12,15 +12,13 @@ use base qw(NanoA::Plugin);
 sub init_plugin {
     my ($klass, $controller) = @_;
     plugin::session->init_plugin($controller);
-    my $path = $controller;
-    $path =~ s|::|/|;
     no strict 'refs';
     no warnings 'redefine';
     my $form;
     *{$controller . '::form'} = sub { $form };
     *{$controller . '::define_form'} = sub {
         $form = NanoA::Form->new(
-            action => NanoA->nanoa_uri . '/' . $path,
+            action => NanoA->nanoa_uri . '/' . NanoA::package_to_path($controller),
             @_ == 1 ? %{$_[0]} : @_,
         );
     };
