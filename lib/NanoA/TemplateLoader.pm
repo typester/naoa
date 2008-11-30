@@ -31,11 +31,12 @@ sub __compile {
     $t->parse(NanoA::read_file($path));
     $t->build();
     my $code = $t->code();
-    my $global = $t->global();
+    my $global = ''; # for now $t->global();
+#intentially adds space before 'use', so that it would not be erased by tools/concat.pl
     $code = << "EOT";
 package $module;
-use strict;
-use warnings;
+ use strict;
+ use warnings;
 use utf8;
 our \@ISA;
 BEGIN {

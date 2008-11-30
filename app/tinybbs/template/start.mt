@@ -1,7 +1,7 @@
 <?= $app->render('system/header') ?>
 <h2>サンプル掲示板</h2>
 
-<?= $app->form->render($app) ?>
+<?= $app->render_form ?>
 
 ? for my $m (@{$c->{messages}}) {
 

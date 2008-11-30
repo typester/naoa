@@ -4,10 +4,15 @@ use strict;
 use warnings;
 use utf8;
 
-use NanoA::Form;
+use HTML::AutoForm;
 use plugin::session;
 
 use base qw(NanoA::Plugin);
+
+BEGIN {
+    $HTML::AutoForm::CLASS_PREFIX = 'nanoa_form';
+    $HTML::AutoForm::DEFAULT_LANG = 'ja';
+};
 
 sub init_plugin {
     my ($klass, $controller) = @_;
@@ -17,9 +22,34 @@ sub init_plugin {
     my $form;
     *{$controller . '::form'} = sub { $form };
     *{$controller . '::define_form'} = sub {
-        $form = NanoA::Form->new(
+        $form = HTML::AutoForm->new(
             action => NanoA->nanoa_uri . '/' . NanoA::package_to_path($controller),
             @_ == 1 ? %{$_[0]} : @_,
+        );
+    };
+    *{$controller . '::render_form'} = sub {
+        die 'フォームが定義されていません。render_form の前に define_form を呼び出してください'
+            unless $form;
+        shift unless ref $_[0]; # klass->validate_form style
+        my $app = shift;
+        NanoA::raw_string(
+            $form->render(
+                $app->query,
+                $app->session->session_id,
+            ),
+        );
+    };
+    *{$controller . '::validate_form'} = sub {
+        die 'フォームが定義されていません。render_form の前に define_form を呼び出してください'
+            unless $form;
+        shift unless ref $_[0]; # klass->validate_form style
+        my $app = shift;
+        $form->validate(
+            $app->query,
+            sub {
+                my $token = shift;
+                $token eq $app->session->session_id;
+            },
         );
     };
 }

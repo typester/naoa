@@ -42,7 +42,7 @@ sub run {
         'create table bbs (id integer not null primary key autoincrement,title varchar(255),body text)',
     );
 
-    if ($query->request_method eq 'POST' && form->validate($app)) {
+    if ($query->request_method eq 'POST' && $app->validate_form) {
         # insert
         $app->db->do(
             'insert into bbs (title,body) values (?,?)',

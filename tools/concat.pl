@@ -5,13 +5,16 @@ use warnings;
 use Getopt::Long;
 
 my $no_use = '';
+my $shebang;
 GetOptions(
     'no-use=s' => \$no_use,
+    shebang    => \$shebang,
 ) or exit 1;
 $no_use = { map { +($_ => 1) } split /\s*,\s*/, $no_use };
 
 
-print "#!$^X\n";
+print "#!$^X\n"
+    if $shebang;
 
 my @files = @ARGV;
 $no_use->{$_} = 1

@@ -30,6 +30,7 @@ my $version = version();
 my $distdir = File::Spec->catfile('dist-cgi', $version);
 my $postamble = <<EOM;
 NANOADIR = $distdir
+NANOAVER = $version
 
 EOM
 
@@ -42,7 +43,7 @@ nanoadir:
 	$(NOECHO)$(MKPATH) $(NANOADIR);
 
 nanoacgi: $(NANOA_CGI_FILES)
-	$(FULLPERLRUN) tools/concat.pl $(NANOA_CGI_FILES) > $(NANOADIR)/nanoa.cgi
+	$(FULLPERLRUN) tools/concat.pl -s -n strict,warnings $(NANOA_CGI_FILES) > $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(CHMOD) 755 $(NANOADIR)/nanoa.cgi
 	$(NOECHO)$(ECHO) "Generated $(NANOADIR)/nanoa.cgi"
 
@@ -58,10 +59,10 @@ nanoaapp:
 nanoa-dist: nanoa
 EOM
 
-$postamble .= <<"EOM";
+$postamble .= <<'EOM';
 	\$(NOECHO)(cd \$(NANOADIR) && tar czf ../nanoa-$version.tar.gz .)
-	tgz2cgi/tgz2cgi.pl --title='NanoA Installer' --end='<a href="./">Next step</a><script>window.setTimeout(function () { location = "./"; }, 5000)</script>' --check-files=.htaccess,nanoa.cgi,lib,extlib,var,app --nph < dist-cgi/nanoa-$version.tar.gz > dist-cgi/nph-nanoa-$version-installer.cgi
-	\$(NOECHO)chmod 755 dist-cgi/nph-nanoa-$version-installer.cgi
+	tgz2cgi/tgz2cgi.pl --title='NanoA Installer' --end='<a href="./">Next step</a><script>window.setTimeout(function () { location = "./"; }, 5000)</script>' --check-files=.htaccess,nanoa.cgi,lib,extlib,var,app --nph < dist-cgi/nanoa-$version.tar.gz > dist-cgi/nph-nanoa-$(NANOAVER)-installer.cgi
+	\$(NOECHO)chmod 755 dist-cgi/nph-nanoa-$(NANOAVER)-installer.cgi
 EOM
 
 $postamble .= <<'EOM';
@@ -74,8 +75,9 @@ nanoa: nanoadir nanoacgi nanoaextlib nanoaapp nanoamanifest
 nanoaextlib: 
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
 	(cd MENTA/extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
+	(cd extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
 	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
-	(cd lib && tar cf - NanoA/Form.pm) | (cd $(NANOADIR)/extlib && tar xf -)
+
 EOM
 
 foreach my $file (@extra_files) {
