@@ -86,6 +86,13 @@ foreach my $file (@extra_files) {
 EOM
 }
 
+$postamble .= <<'EOM';
+
+html-autoform:
+	(cd ../HTML-AutoForm/lib && ../../NanoA/tools/concat.pl -n strict,warnings,Class::Accessor::Lite `find HTML -name '*.pm' | sort`) > extlib/HTML/AutoForm.pm
+
+EOM
+
 postamble($postamble);
 
 WriteAll;
