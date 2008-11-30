@@ -3,7 +3,7 @@ use warnings;
 use utf8;
 
 BEGIN {
-    unshift @INC, 'extlib';
+    unshift @INC, qw(extlib app);
 };
 
 if ($ENV{MOD_PERL}) {

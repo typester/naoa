@@ -5,9 +5,10 @@ use warnings;
 use utf8;
 
 use HTML::AutoForm;
-use plugin::session;
 
 use base qw(NanoA::Plugin);
+
+use plugin::session;
 
 BEGIN {
     $HTML::AutoForm::CLASS_PREFIX = 'nanoa_form';

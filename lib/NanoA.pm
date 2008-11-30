@@ -124,7 +124,14 @@ sub redirect {
         $uri = nanoa_uri() . '/' . package_to_path(ref $self);
     }
     $status ||= 302;
-    print 'Status: ', $status, "\nLocation: " . $uri . "\n\n";
+    $self->header(-status   => 302);
+    $self->header(-location => $uri);
+    my $body = '';
+    $self->run_hooks('postrun', \$body);
+    $self->print_header();
+    utf8::encode($body)
+         if utf8::is_utf8($body);
+    print $body;
     CGI::ExceptionManager::detach();
 }
 
@@ -160,8 +167,31 @@ sub raw_string {
             : bless \$s, 'MENTA::Template::RawString';
 }
 
+sub uri_escape {
+    my $s = shift;
+    join(
+        '',
+        map {
+            /^[a-zA-Z0-9_.!~*'()-]$/ ? $_ : '%' . uc(unpack('H2', $_))
+        } split(//, $s),
+    );
+}
+
 sub nanoa_uri {
     $ENV{SCRIPT_NAME} || '/nanoa.cgi';
+}
+
+sub uri_for {
+    my ($app, $path, $query) = @_;
+    $path = nanoa_uri . '/' . $path
+        unless $path =~ m|^/|;
+    return $path unless $query && ref $query eq 'HASH';
+    $path . '?' . join(
+        '&',
+        map {
+            uri_escape($_) . '=' . uri_escape($query->{$_}),
+        } sort keys %$query,
+    );
 }
 
 sub root_uri {
