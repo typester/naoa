@@ -18,21 +18,30 @@ sub init_plugin {
     no strict 'refs';
     no warnings 'redefine';
     my $form;
-    *{$controller . '::openid_require_login'} = sub {
-        my ($app, $op, $back_uri) = @_;
-        return
-            if $app->session->get('openid_identity');
+    *{$controller . '::openid_login_uri'} = sub {
+        my ($app, $back_uri, $op, $args) = @_;
+        $back_uri = $app->nanoa_uri . '/' . $back_uri
+            unless $back_uri =~ m{^(/|[a-z]+://)};
+        $args ||= {};
         _load_lib();
-        $app->redirect(
-            Net::OpenID::Consumer::Lite->check_url(
-                $op,
-                "http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}" . $app->uri_for(
-                    'openid/openid', {
-                        back => $back_uri,
-                    },
-                ),
+        Net::OpenID::Consumer::Lite->check_url(
+            $op,
+            "http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}" . $app->uri_for(
+                'openid/openid', {
+                    back => $back_uri,
+                },
             ),
+            $args,
         );
+    };
+    *{$controller . '::openid_logout_uri'} = sub {
+        my ($app, $back_uri) = @_;
+        $back_uri = $app->nanoa_uri . '/' . $back_uri
+            unless $back_uri =~ m{^(/|[a-z]+://)};
+        $app->uri_for('openid/openid', {
+            back => $back_uri,
+            logout => 1,
+        });
     };
     *{$controller . '::openid_identity'} = sub {
         my $app = shift;
@@ -47,6 +56,15 @@ sub init_plugin {
 
 sub run {
     my $app = shift;
+    
+    if ($app->query->param('logout')) {
+        $app->session->remove('openid_identity');
+        $app->session->remove('openid_op_endpoint');
+        if (my $back_uri = $app->query->param('back')) {
+            $app->redirect($back_uri);
+        }
+        return "logged out";
+    }
     
     _load_lib();
     
