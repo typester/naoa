@@ -28,6 +28,7 @@ sub init_plugin {
         }
         $app->uri_for('plugin/admin', {
             back => $back_uri,
+            mode => 'login',
         });
     };
     *{$controller . '::openid_logout_uri'} = sub {
@@ -39,8 +40,8 @@ sub init_plugin {
             $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
         }
         $app->uri_for('plugin/admin', {
-            back   => $back_uri,
-            logout => 1,
+            back => $back_uri,
+            mode => 'logout',
         });
     };
 }
@@ -50,41 +51,54 @@ plugin::form->init_plugin(__PACKAGE__);
 
 sub run {
     my $app = shift;
-    
-    if ($app->query->param('logout')) {
+    my $mode = $app->query->param('mode') || '';
+
+    if ($mode eq 'logout') {
+        
         $app->session->remove('system.is_admin');
         $app->redirect($app->query->param('back') || $app->nanoa_uri);
-    }
+        
+    } elsif ($mode eq 'login') {
     
-    define_form(
-        fields => [
-            password => {
-                type     => 'password',
-                label    => '管理用パスワード',
-                # validation
-                required => 1,
-                custom   => sub {
-                    my ($field, $query) = @_;
-                    my $hash =
-                        $app->config->system_config->prefs('system_password');
-                    if (crypt($query->param('password'), $hash) ne $hash) {
-                        return HTML::AutoForm::Error->CUSTOM(
-                            $field,
-                            'パスワードが間違っています',
-                        );
-                    }
-                    return;
+        define_form(
+            fields => [
+                password => {
+                    type     => 'password',
+                    label    => '管理用パスワード',
+                    # validation
+                    required => 1,
+                    custom   => sub {
+                        my ($field, $query) = @_;
+                        my $hash =
+                            $app->config->system_config->prefs(
+                                'system_password',
+                            );
+                        if (crypt($query->param('password'), $hash) ne $hash) {
+                            return HTML::AutoForm::Error->CUSTOM(
+                                $field,
+                                'パスワードが間違っています',
+                            );
+                        }
+                        return;
+                    },
                 },
-            },
-        ],
-    );
-    
-    if ($app->query->request_method eq 'POST' && $app->validate_form) {
-        $app->session->set('system.is_admin', 1);
-        $app->redirect($app->query->param('back') || $app->nanoa_uri);
+                mode     => {
+                    type  => 'hidden',
+                    value => 'login',
+                },
+            ],
+        );
+        if ($app->query->request_method eq 'POST' && $app->validate_form) {
+            $app->session->set('system.is_admin', 1);
+            $app->redirect($app->query->param('back') || $app->nanoa_uri);
+        }
+        return $app->render('plugin/template/admin_login');
+        
+    } else {
+        
+        return $app->render('plugin/template/admin');
+        
     }
-    
-    $app->render('plugin/template/admin');
 }
 
 1;
