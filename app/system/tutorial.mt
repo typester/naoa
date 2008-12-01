@@ -1,5 +1,5 @@
 ? use plugin::mobile;
-<?= $app->render('system/header') ?>
+<?= $app->render('system/header', { title_suffix => 'チュートリアル' }) ?>
 
 <h2 id="install">インストール</h2>
 <p>

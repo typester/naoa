@@ -1,4 +1,4 @@
-<?= $app->render('system/header') ?>
+<?= $app->render('system/header', { title_suffix => 'インストール' }) ?>
 
 <h2>共有サーバへのインストール</h2>
 <p>
