@@ -46,7 +46,7 @@ sub init_plugin {
     };
 }
 
-# since plugin::admin is a plugin itself, explicite initialization is required
+# since plugin::admin is a plugin itself, explicit initialization is required
 plugin::form->init_plugin(__PACKAGE__);
 
 sub run {
