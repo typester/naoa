@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#! /usr/bin/env perl
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ GetOptions(
 $no_use = { map { +($_ => 1) } split /\s*,\s*/, $no_use };
 
 
-print "#!$^X\n"
+print "#! /usr/bin/env perl\n"
     if $shebang;
 
 my @files = @ARGV;
