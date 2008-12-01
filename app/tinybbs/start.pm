@@ -6,6 +6,7 @@ use utf8;
 
 use plugin::mobile;
 use plugin::form;
+use openid::openid;
 
 use base qw(NanoA);
 
@@ -24,13 +25,6 @@ define_form
             # validation
             required   => 1,
         },
-        email => {
-            type       => 'text',
-            label      => 'メールアドレス',
-            # validation
-            required   => 1,
-            regexp     => 'email',
-        },
     ];
 
 sub run {
@@ -42,7 +36,8 @@ sub run {
         'create table bbs (id integer not null primary key autoincrement,title varchar(255),body text)',
     );
 
-    if ($query->request_method eq 'POST' && $app->validate_form) {
+    if ($query->request_method eq 'POST' && $app->validate_form
+            && $app->openid_user) {
         # insert
         $app->db->do(
             'insert into bbs (title,body) values (?,?)',
