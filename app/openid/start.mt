@@ -1,4 +1,5 @@
 ? use openid::openid
+
 <?= $app->render('system/header') ?>
 
 <h2>OpenID でログインするデモ</h2>

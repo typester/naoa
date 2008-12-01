@@ -1,4 +1,5 @@
 <?= $app->render('system/header') ?>
+
 <h2>サンプル掲示板</h2>
 
 ? if ($app->openid_user) {
