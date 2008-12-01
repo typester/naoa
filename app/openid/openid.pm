@@ -43,14 +43,13 @@ sub init_plugin {
             logout => 1,
         });
     };
-    *{$controller . '::openid_identity'} = sub {
+    *{$controller . '::openid_user'} = sub {
         my $app = shift;
-        $app->session->get('openid_identity');
+        $app->session->get('openid_user');
     };
     *{$controller . '::openid_logout'} = sub {
         my $app = shift;
-        $app->session->remove('openid_identity');
-        $app->session->remove('openid_op_endpoint');
+        $app->session->remove('openid_user');
     };
 }
 
@@ -58,8 +57,7 @@ sub run {
     my $app = shift;
     
     if ($app->query->param('logout')) {
-        $app->session->remove('openid_identity');
-        $app->session->remove('openid_op_endpoint');
+        $app->session->remove('openid_user');
         if (my $back_uri = $app->query->param('back')) {
             $app->redirect($back_uri);
         }
@@ -89,12 +87,8 @@ sub run {
                 my $vident = shift;
                 $app->session->regenerate_session_id();
                 $app->session->set(
-                    'openid_identity',
-                    $vident->{identity},
-                );
-                $app->session->set(
-                    'openid_op_endpoint',
-                    $vident->{op_endpoint},
+                    'openid_user',
+                    $vident,
                 );
                 if (my $back_uri = $app->query->param('back')) {
                     $app->redirect($back_uri);

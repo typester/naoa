@@ -3,9 +3,9 @@
 
 <h2>OpenID でログインするデモ</h2>
 
-? if ($app->openid_identity) {
+? if (my $user = $app->openid_user) {
 
-あなたは <a href="<?= $app->openid_identity ?>"><?= $app->openid_identity ?></a> としてログイン中です。 <a href="<?= $app->openid_logout_uri('openid/') ?>">ログアウト</a>
+あなたは <a href="<?= $user->{identity} ?>"><?= $user->{identity} ?></a> としてログイン中です。 <a href="<?= $app->openid_logout_uri('openid/') ?>">ログアウト</a>
 
 ? } else {
 
