@@ -4,9 +4,9 @@ use strict;
 use warnings;
 use utf8;
 
-use plugin::mobile;
 use plugin::form;
-use openid::openid;
+use plugin::mobile;
+use plugin::openid;
 
 use base qw(NanoA);
 

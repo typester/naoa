@@ -1,4 +1,4 @@
-package openid::openid;
+package plugin::openid;
 
 use strict;
 use warnings;
@@ -17,7 +17,6 @@ sub init_plugin {
     plugin::session->init_plugin($controller);
     no strict 'refs';
     no warnings 'redefine';
-    my $form;
     *{$controller . '::openid_login_uri'} = sub {
         my ($app, $op, $back_uri) = @_;
         if (defined $back_uri) {
@@ -30,7 +29,7 @@ sub init_plugin {
         print STDERR "op: $op\n";
         Net::OpenID::Consumer::Lite->check_url(
             $op,
-            $app->uri_for('openid/openid', {
+            $app->uri_for('plugin/openid', {
                 back => $back_uri,
             }),
             {
@@ -48,7 +47,7 @@ sub init_plugin {
         } else {
             $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
         }
-        $app->uri_for('openid/openid', {
+        $app->uri_for('plugin/openid', {
             back => $back_uri,
             logout => 1,
         });
