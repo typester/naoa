@@ -46,7 +46,7 @@ sub run {
     if ($app->query->request_method eq 'POST' && $app->validate_form) {
         $app->config->prefs(
             'system_password',
-            crypt($app->query->param('password'), $$ . rand() . time()),
+            crypt($app->query->param('password'), '$1$' . $$ . rand() . time()),
         );
         $app->redirect($app->uri_for('system/setup_complete'));
     }

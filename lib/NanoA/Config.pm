@@ -65,7 +65,7 @@ sub new {
 }
 
 sub system_config {
-    my ($self, $n) = @_;
+    my $self = shift;
     return $self
         if $self->app_name eq 'system';
     $self->{system_config} = NanoA::Dispatch->load_config('system/')
