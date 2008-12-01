@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="<?= $app->root_uri() ?>/app/system/style.css" type="text/css" />
 <link rel="stylesheet" href="<?= $app->root_uri() ?>/app/system/nanoa_form.css" type="text/css" />
-<title>NanoA<?= $c->{title_suffix} ? "- $c->{title_suffix}" : "" ?></title>
+<title>NanoA<?= $c->{title_suffix} ? " :: $c->{title_suffix}" : "" ?></title>
 </head>
 <body>
 <center>
