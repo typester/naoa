@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 my %REQUIRED;
 my %LOADED;
