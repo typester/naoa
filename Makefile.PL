@@ -76,6 +76,7 @@ nanoaextlib:
 	$(NOECHO)$(MKPATH) $(NANOADIR)/extlib
 	(cd MENTA/extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
 	(cd extlib && tar cf - --exclude .svn .) | (cd $(NANOADIR)/extlib && tar xf -)
+	(cd MENTA/extlib && ../../tools/concat.pl -n strict,warnings,Class::Accessor::Lite `find HTML/AutoForm* -name '*.pm' | sort`) > $(NANOADIR)/extlib/HTML/AutoForm.pm
 	(cd MENTA/lib && tar cf - MENTA/Template.pm) | (cd $(NANOADIR)/extlib && tar xf -)
 
 EOM
@@ -85,13 +86,6 @@ foreach my $file (@extra_files) {
 	\$(CP) $file \$(NANOADIR)/$file
 EOM
 }
-
-$postamble .= <<'EOM';
-
-html-autoform:
-	(cd ../HTML-AutoForm/lib && ../../NanoA/tools/concat.pl -n strict,warnings,Class::Accessor::Lite `find HTML -name '*.pm' | sort`) > extlib/HTML/AutoForm.pm
-
-EOM
 
 postamble($postamble);
 
