@@ -16,7 +16,8 @@ sub dispatch {
     $handler_path .= 'start'
         if $handler_path =~ m|^[^/]+/$|;
     
-    # TODO: should load config here
+    NanoA::Config->init_klass($handler_path);
+    
     my $config = $klass->load_config($handler_path);
     
     $handler_path = camelize($handler_path)
