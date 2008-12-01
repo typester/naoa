@@ -55,4 +55,9 @@ sub init_plugin {
     };
 }
 
+sub run {
+    my $self = shift;
+    return $self->render('plugin/template/form');
+}
+
 1;

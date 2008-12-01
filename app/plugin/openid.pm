@@ -65,6 +65,9 @@ sub init_plugin {
 sub run {
     my $app = shift;
     
+    return $app->render('plugin/template/openid')
+        unless $app->query->param;
+    
     if ($app->query->param('logout')) {
         $app->session->remove('openid_user');
         if (my $back_uri = $app->query->param('back')) {

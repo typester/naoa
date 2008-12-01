@@ -21,6 +21,11 @@ sub _postrun {
     $app->session->header_filter($app);
 }
 
+sub run {
+    my $self = shift;
+    return $self->render('plugin/template/session');
+}
+
 no warnings 'redefine';
 
 sub NanoA::session {

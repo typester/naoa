@@ -69,6 +69,11 @@ sub _mobile_encoding {
     return 'cp932';
 }
 
+sub run {
+    my $self = shift;
+    return $self->render('plugin/template/mobile');
+}
+
 no warnings 'redefine';
 
 sub NanoA::mobile_agent {
