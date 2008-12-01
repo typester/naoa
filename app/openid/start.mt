@@ -17,7 +17,7 @@
 ? } else {
 <ul>
 <li><a href="<?= $app->uri_for('openid/', { op => 'https://mixi.jp/openid_server.pl' }) ?>">Mixi でログイン</a></li>
-<li><a href="<?= $app->uri_for('openid/', { op => 'https://auth.livedoor.com/openid/server/' }) ?>">Livedoor でログイン</a></li>
+<li><a href="<?= $app->uri_for('openid/', { op => 'https://auth.livedoor.com/openid/server' }) ?>">Livedoor でログイン</a></li>
 </ul>
 ? }
 
