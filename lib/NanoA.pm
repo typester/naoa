@@ -178,7 +178,11 @@ sub uri_escape {
 }
 
 sub nanoa_uri {
-    $ENV{SCRIPT_NAME} || '/nanoa.cgi';
+    return '/nanoa.cgi'
+        unless $ENV{SCRIPT_NAME};
+    'http://' . $ENV{SERVER_NAME} .
+        ($ENV{SERVER_PORT} != 80 ? ':' . $ENV{SERVER_PORT} : '')
+            . $ENV{SCRIPT_NAME};
 }
 
 sub uri_for {

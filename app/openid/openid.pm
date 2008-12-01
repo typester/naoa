@@ -19,25 +19,35 @@ sub init_plugin {
     no warnings 'redefine';
     my $form;
     *{$controller . '::openid_login_uri'} = sub {
-        my ($app, $back_uri, $op, $args) = @_;
-        $back_uri = $app->nanoa_uri . '/' . $back_uri
-            unless $back_uri =~ m{^(/|[a-z]+://)};
-        $args ||= {};
+        my ($app, $op, $back_uri) = @_;
+        if (defined $back_uri) {
+            $back_uri = $app->nanoa_uri . '/' . $back_uri
+                unless $back_uri =~ m{^(/|[a-z]+://)};
+        } else {
+            $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
+        }
         _load_lib();
+        print STDERR "op: $op\n";
         Net::OpenID::Consumer::Lite->check_url(
             $op,
-            "http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}" . $app->uri_for(
-                'openid/openid', {
-                    back => $back_uri,
+            $app->uri_for('openid/openid', {
+                back => $back_uri,
+            }),
+            {
+                "http://openid.net/extensions/sreg/1.1" => {
+                    required => 'email,nickname',
                 },
-            ),
-            $args,
+            },
         );
     };
     *{$controller . '::openid_logout_uri'} = sub {
         my ($app, $back_uri) = @_;
-        $back_uri = $app->nanoa_uri . '/' . $back_uri
-            unless $back_uri =~ m{^(/|[a-z]+://)};
+        if (defined $back_uri) {
+            $back_uri = $app->nanoa_uri . '/' . $back_uri
+                unless $back_uri =~ m{^(/|[a-z]+://)};
+        } else {
+            $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
+        }
         $app->uri_for('openid/openid', {
             back => $back_uri,
             logout => 1,
