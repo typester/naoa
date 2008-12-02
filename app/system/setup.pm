@@ -35,7 +35,7 @@ define_form(
             },
         },
     ],
-    submit_label => '設定する',
+    submit_label => 'パスワードを設定',
 );
 
 sub run {
