@@ -8,7 +8,7 @@ use base qw(NanoA);
 
 use plugin::form;
 
-define_form
+define_form(
     fields => [
         password  => {
             type       => 'password',
@@ -34,7 +34,9 @@ define_form
                 return;
             },
         },
-    ];
+    ],
+    submit_label => '設定する',
+);
 
 sub run {
     my $app = shift;

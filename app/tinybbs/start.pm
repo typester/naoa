@@ -10,7 +10,7 @@ use plugin::openid;
 
 use base qw(NanoA);
 
-define_form
+define_form(
     fields => [
         title => {
             type       => 'text',
@@ -25,7 +25,9 @@ define_form
             # validation
             required   => 1,
         },
-    ];
+    ],
+    submit_label => '投稿する',
+);
 
 sub run {
     my $app = shift;
