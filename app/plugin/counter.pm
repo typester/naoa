@@ -1,11 +1,17 @@
-package system::plugin::counter;
+package plugin::counter;
 
 use strict;
 use warnings;
 use utf8;
 
+use base qw(NanoA);
+
 sub run {
     my ($app, $c) = @_;
+    
+    # 直接リクエストだったらドキュメント表示
+    return $app->render('plugin/template/counter')
+        if ref $app eq 'plugin::counter';
     
     # 指定された名前、あるいはコントローラのパッケージ名を名前に使う
     my $counter_name = $c && $c->{name} || ref $app;
