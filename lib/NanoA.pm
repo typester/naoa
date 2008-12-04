@@ -254,7 +254,8 @@ sub require_once {
 sub load_once {
     my ($path, $mark_path) = @_;
     $mark_path ||= $path;
-    return 1 if $LOADED{$mark_path};
+    return $LOADED{$mark_path}
+        if exists $LOADED{$mark_path};
     local $@;
     if (do $path) {
         $LOADED{$mark_path} = 1;
@@ -262,7 +263,7 @@ sub load_once {
     }
     die $@
         if $@;
-    undef;
+    $LOADED{$mark_path} = undef;
 }
 
 sub loaded {
