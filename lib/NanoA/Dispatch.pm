@@ -95,12 +95,12 @@ sub load_pm {
 sub load_mojo_template {
     my ($klass, $config, $path) = @_;
     $path =~ s{/+$}{};
-    return
-        unless -e NanoA::app_dir() ."/$path.mt";
     my $module = $path;
     $module =~ s{/}{::}g;
     return $module
         if NanoA::loaded($path);
+    return
+        unless -e NanoA::app_dir() ."/$path.mt";
     NanoA::TemplateLoader::__load(
         $config, $module, NanoA::app_dir() ."/$path.mt");
     $module;

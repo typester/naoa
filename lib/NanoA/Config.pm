@@ -4,9 +4,12 @@ use strict;
 use warnings;
 use utf8;
 
+my $inited;
 my $data_dir;
 
 sub init_klass {
+    return 1 if $inited;
+    
     my ($klass, $handler_path) = @_;
     
     # read configuration and setup data directory
@@ -46,6 +49,8 @@ EOT
         print 'Location: ', NanoA->nanoa_uri, '/system/setup', "\n\n";
         CGI::ExceptionManager::detach();
     }
+    
+    $inited = 1;
 }
 
 sub new {
@@ -100,6 +105,19 @@ sub prefs {
 }
 
 sub data_dir { $data_dir }
+
+sub db {
+    my $self = shift;
+    unless ($self->{db}) {
+        NanoA::require_once('DBI.pm');
+        my $db_uri = $self->db_uri;
+        $self->{db} = DBI->connect($db_uri)
+            or die DBI->errstr;
+        $self->{db}->{unicode} = 1
+            if $db_uri =~ /^dbi:sqlite:/i;
+    }
+    $self->{db};
+}
 
 sub db_uri {
     my $self = shift;

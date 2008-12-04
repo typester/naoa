@@ -273,16 +273,7 @@ sub loaded {
 }
 
 sub db {
-    my $self = shift;
-    unless ($self->{db}) {
-        require_once('DBI.pm');
-        my $db_uri = $self->config->db_uri;
-        $self->{db} = DBI->connect($db_uri)
-            or die DBI->errstr;
-        $self->{db}->{unicode} = 1
-            if $db_uri =~ /^dbi:sqlite:/i;
-    }
-    $self->{db};
+    $_[0]->config->db;
 }
 
 sub read_file {
