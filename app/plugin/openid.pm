@@ -26,7 +26,6 @@ sub init_plugin {
             $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
         }
         _load_lib();
-        print STDERR "op: $op\n";
         Net::OpenID::Consumer::Lite->check_url(
             $op,
             $app->uri_for('plugin/openid', {
