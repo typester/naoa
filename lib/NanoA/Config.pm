@@ -44,7 +44,7 @@ EOT
     if (! -e "$data_dir/system/system_password.conf"
             && $handler_path ne 'system/setup') {
         print 'Location: ', NanoA->nanoa_uri, '/system/setup', "\n\n";
-        exit 0;
+        CGI::ExceptionManager::detach();
     }
 }
 

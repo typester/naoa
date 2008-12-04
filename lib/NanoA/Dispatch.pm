@@ -10,7 +10,7 @@ sub dispatch {
     my $handler_path = substr($ENV{PATH_INFO} || '/', 1);
     if ($handler_path eq '' && -d 'app/index') {
         print "Status: 302\nLocation: $ENV{SCRIPT_NAME}/index/\n\n";
-        exit 0;
+        CGI::ExceptionManager::detach();
     }
     $handler_path =~ s{\.\.}{}g;
     $handler_path .= 'start'

@@ -240,6 +240,7 @@ sub print_header {
             print ucfirst($n), ': ', $v, "\n";
         }
     }
+    
     print "\n";
 }
 
@@ -253,7 +254,7 @@ sub require_once {
 sub load_once {
     my ($path, $mark_path) = @_;
     $mark_path ||= $path;
-    return if $LOADED{$mark_path};
+    return 1 if $LOADED{$mark_path};
     local $@;
     if (do $path) {
         $LOADED{$mark_path} = 1;
