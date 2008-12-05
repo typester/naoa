@@ -168,7 +168,10 @@ sub raw_string {
 }
 
 sub uri_escape {
+    no utf8;
     my $s = shift;
+    utf8::encode($s)
+         if utf8::is_utf8($s);
     join(
         '',
         map {

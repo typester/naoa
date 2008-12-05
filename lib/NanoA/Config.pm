@@ -14,9 +14,13 @@ sub init_klass {
     
     # read configuration and setup data directory
     my $conf = NanoA::read_file('nanoa-conf.cgi');
-    $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
-        or die "nanoa-conf.cgi に data_dir が設定されていません\n";
-    $data_dir = $1;
+    {
+        no utf8;
+        $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
+            and $data_dir = $1;
+    }
+    die "nanoa-conf.cgi に data_dir が設定されていません\n"
+        unless defined $data_dir;
     my $use_htaccess =
         $^O =~ /win32/i ? $data_dir !~ m|^[a-z]:[\\\/]| : $data_dir !~ m|/|;
     if ($use_htaccess && ! $ENV{HTTP_NANOA_USE_HTACCESS}) {
