@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 my %REQUIRED;
 my %LOADED;
@@ -97,8 +97,9 @@ sub header {
         die "Usage error: \$app->header() or \$app->header(name) or \$app->header(n1 => v1, n2 => v2)\n"
             if @_ % 2 != 0;
         while (@_) {
-            my $n = lc shift;
-            $n =~ s/^([^-])/-$1/;
+            my $n = shift;
+            $n = '-' . $n
+                unless substr($n, 0, 1) eq '-';
             my $v = shift;
             $v = [ $v ]
                 unless ref $v eq 'ARRAY';
