@@ -13,11 +13,16 @@ sub init_klass {
     my ($klass, $handler_path) = @_;
     
     # read configuration and setup data directory
-    if (-e 'nanoa-conf.cgi') {
-        my $conf = NanoA::read_file('nanoa-conf.cgi');
-        $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
-            or die "nanoa-conf.cgi に data_dir が設定されていません\n";
-        $data_dir = $1;
+    if (open my $fh, '<', 'nanoa-conf.cgi') {
+        {
+            no utf8;
+            my $conf = do { local $/; join '', <$fh> };
+            close $fh;
+            $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
+                and $data_dir = $1;
+        }
+        die "nanoa-conf.cgi に data_dir が設定されていません\n"
+            unless $data_dir;
     } else {
         if (! $ENV{HTTP_NANOA_USE_HTACCESS}) {
             die << 'EOT';
