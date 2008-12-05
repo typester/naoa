@@ -282,7 +282,7 @@ sub db {
 
 sub read_file {
     my $fname = shift;
-    open my $fh, '<:utf8', $fname or die 'cannot read ' . $fname. ":$!";
+    open my $fh, '<:utf8', $fname or die 'cannot read ' . $fname. ':' . $!;
     my $s = do { local $/; join '', <$fh> };
     close $fh;
     $s;

@@ -23,7 +23,6 @@ all_from('lib/NanoA.pm');
 # ここでnanoaルールを定義
 my @extra_files = qw(
     .htaccess
-    nanoa-conf.cgi
 );
 
 my $version = version();

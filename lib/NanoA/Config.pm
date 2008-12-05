@@ -13,48 +13,58 @@ sub init_klass {
     my ($klass, $handler_path) = @_;
     
     # read configuration and setup data directory
-    my $conf = NanoA::read_file('nanoa-conf.cgi');
-    {
-        no utf8;
+    if (-e 'nanoa-conf.cgi') {
+        my $conf = NanoA::read_file('nanoa-conf.cgi');
         $conf =~ /(?:^|\n)data_dir\s*=\s*(.*)/
-            and $data_dir = $1;
-    }
-    die "nanoa-conf.cgi に data_dir が設定されていません\n"
-        unless defined $data_dir;
-    my $use_htaccess =
-        $^O =~ /win32/i ? $data_dir !~ m|^[a-z]:[\\\/]| : $data_dir !~ m|/|;
-    if ($use_htaccess && ! $ENV{HTTP_NANOA_USE_HTACCESS}) {
+            or die "nanoa-conf.cgi に data_dir が設定されていません\n";
+        $data_dir = $1;
+    } else {
+        if (! $ENV{HTTP_NANOA_USE_HTACCESS}) {
             die << 'EOT';
-この実行環境は .htaccess ファイルによるアクセス制御をサポートしていません。
-nanoa-conf.cgi に、nanoa 配下以外のディレクトリを絶対パスで指定してください。
+この実行環境は .htaccess ファイルによるアクセス制御をサポートしていないため、手動でデータディレクリを作成していただく必要があります。
+
+NanoA をインストールしたディレクトリに nanoa-conf.cgi というファイルを作成し、
+
+「data_dir = NanoAのデータを格納するディレクトリ名」
+
+という書式で、データを保存するディレクトリを指定してください。
 EOT
             ;
         }
-    unless (-d $data_dir) {
-        my $u = umask 077;
-        mkdir $data_dir
-            or die << "EOT";
-データ用のディレクトリ「${data_dir}」が存在しなかったため、作成を試みましたが失敗しました。
-nanoa-conf.cgi の設定を確認してください
-EOT
-        ;
-        umask $u;
-    }
-    if ($use_htaccess && ! -e $data_dir . '/.htaccess') {
-        open my $fh, '>', $data_dir . '/.htaccess'
-            or die $data_dir . '/.htaccess を作成できません:';
-        print $fh "Deny from All\nOrder deny,allow\n";
-        close $fh;
+        $data_dir = 'var';
+        if (! -e $data_dir . '/.htaccess') {
+            _make_data_dir($data_dir);
+            open my $fh, '>', $data_dir . '/.htaccess'
+                or die $data_dir . '/.htaccess を作成できません:';
+            print $fh "Deny from All\nOrder deny,allow\n";
+            close $fh;
+        }
     }
     
     # redirect to system password page if necessary
-    if (! -e "$data_dir/system/system_password.conf"
-            && $handler_path ne 'system/setup') {
-        print 'Location: ', NanoA->nanoa_uri, '/system/setup', "\n\n";
-        CGI::ExceptionManager::detach();
+    if (! -e "${data_dir}/system/system_password.conf") {
+        _make_data_dir($data_dir);
+        if ($handler_path ne 'system/setup') {
+            print 'Location: ', NanoA->nanoa_uri, '/system/setup', "\n\n";
+            CGI::ExceptionManager::detach();
+        }
     }
     
     $inited = 1;
+}
+
+sub _make_data_dir {
+    my $data_dir = shift;
+    return
+        if -d $data_dir;
+    my $u = umask 077;
+    mkdir $data_dir
+        or die << "EOT";
+データ用のディレクトリ「${data_dir}」が存在しなかったため、作成を試みましたが失敗しました。
+nanoa-conf.cgi の設定を確認してください
+EOT
+    ;
+    umask $u;
 }
 
 sub new {
