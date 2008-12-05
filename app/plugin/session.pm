@@ -35,9 +35,13 @@ sub NanoA::session {
             file => join('/', $app->config->data_dir, 'session.dbm'),
         ),
         state   => HTTP::Session::State::Cookie->new(),
-        request => $app->query,
+        request => bless(\do { "" }, 'plugin::session::request'),
         id      => 'HTTP::Session::ID::MD5',
     );
 }
+
+package plugin::session::request;
+# a dummy object (since cookie parameter can be retrieved via %ENV)
+sub header {}
 
 1;
