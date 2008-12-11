@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use HTTP::Session;
-use HTTP::Session::Store::DBM;
+use HTTP::Session::Store::File;
 use HTTP::Session::State::Cookie;
 
 use base qw(NanoA::Plugin);
@@ -30,14 +30,18 @@ no warnings 'redefine';
 
 sub NanoA::session {
     my $app = shift;
-    $app->{stash}->{'plugin::session'} ||= HTTP::Session->new(
-        store   => HTTP::Session::Store::DBM->new(
-            file => join('/', $app->config->data_dir, 'session.dbm'),
-        ),
-        state   => HTTP::Session::State::Cookie->new(),
-        request => bless(\do { "" }, 'plugin::session::request'),
-        id      => 'HTTP::Session::ID::MD5',
-    );
+    $app->{stash}->{'plugin::session'} ||= do {
+        my $dir = $app->config->data_dir . '/session';
+        mkdir $dir;
+        HTTP::Session->new(
+            store   => HTTP::Session::Store::File->new(
+                dir => $dir,
+            ),
+            state   => HTTP::Session::State::Cookie->new(),
+            request => bless(\do { "" }, 'plugin::session::request'),
+            id      => 'HTTP::Session::ID::MD5',
+        );
+    };
 }
 
 package plugin::session::request;
