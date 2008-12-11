@@ -1,6 +1,6 @@
 <?= $app->render('plugin/template/header', { title => 'Admin プラグイン' }) ?>
 
-<h2 id="session">Admin プラグイン</h2>
+<h2>Admin プラグイン</h2>
 
 <p>
 Admin プラグインを利用して、管理者権限でのログイン状態を制御することができます。
@@ -17,5 +17,15 @@ sub run {
         unless $app->is_admin;
     ...
 </pre>
+
+<h2>現在のログイン状態</h2>
+
+<div>
+? if ($app->is_admin) {
+管理者としてログイン中です。<input type="button" onclick="location='<?= $app->uri_for('plugin/admin', { mode => 'logout', back => $app->uri_for('plugin/admin') }) ?>'" value="ログアウト">
+? } else {
+管理者としてログインしていません。<input type="button" onclick="location='<?= $app->uri_for('plugin/admin', { mode => 'login', back => $app->uri_for('plugin/admin') }) ?>'" value="ログイン">
+? }
+</div>
 
 <?= $app->render('system/footer') ?>

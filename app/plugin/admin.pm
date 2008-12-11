@@ -49,6 +49,9 @@ sub init_plugin {
 # since plugin::admin is a plugin itself, explicit initialization is required
 plugin::form->init_plugin(__PACKAGE__);
 
+# initialize myself
+__PACKAGE__->init_plugin(__PACKAGE__);
+
 sub run {
     my $app = shift;
     my $mode = $app->query->param('mode') || '';
@@ -81,6 +84,10 @@ sub run {
                         }
                         return;
                     },
+                },
+                back => {
+                    type  => 'hidden',
+                    value => $app->query->param('back') || '',
                 },
                 mode     => {
                     type  => 'hidden',
