@@ -38,7 +38,7 @@ sub NanoA::session {
                 dir => $dir,
             ),
             state   => HTTP::Session::State::Cookie->new(),
-            request => bless(\do { "" }, 'plugin::session::request'),
+            request => bless(\do { my $o = "" }, 'plugin::session::request'),
             id      => 'HTTP::Session::ID::MD5',
         );
     };
