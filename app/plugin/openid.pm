@@ -24,6 +24,7 @@ sub init_plugin {
                 unless $back_uri =~ m{^(/|[a-z]+://)};
         } else {
             $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
+            $back_uri .= '?' . $app->query->query_string if $app->query->query_string ;
         }
         _load_lib();
         Net::OpenID::Consumer::Lite->check_url(
@@ -45,6 +46,7 @@ sub init_plugin {
                 unless $back_uri =~ m{^(/|[a-z]+://)};
         } else {
             $back_uri = $app->nanoa_uri . ($app->query->path_info() || '');
+            $back_uri .= '?' . $app->query->query_string if $app->query->query_string ;
         }
         $app->uri_for('plugin/openid', {
             back => $back_uri,
