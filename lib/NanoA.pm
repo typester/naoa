@@ -151,7 +151,7 @@ sub package_to_path {
 sub escape_html {
     my $str = shift;
     return $$str
-        if ref $str eq 'MENTA::Template::raw_string';
+        if ref $str eq 'Text::MicroTemplate::EncodedString';
     $str =~ s/&/&amp;/g;
     $str =~ s/>/&gt;/g;
     $str =~ s/</&lt;/g;
@@ -163,9 +163,9 @@ sub escape_html {
 # create raw string (that does not need to be escaped)
 sub raw_string {
     my $s = shift;
-    ref $s eq 'MENTA::Template::RawString'
+    ref $s eq 'Text::MicroTemplate::EncodedString'
         ? $s
-            : bless \$s, 'MENTA::Template::RawString';
+            : bless \$s, 'Text::MicroTemplate::EncodedString';
 }
 
 sub uri_escape {

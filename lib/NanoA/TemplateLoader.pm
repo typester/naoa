@@ -26,10 +26,11 @@ sub __load {
 
 sub __compile {
     my ($path, $module) = @_;
-    NanoA::require_once('MENTA/Template.pm');
-    my $t = MENTA::Template->new;
+    NanoA::require_once('Text/MicroTemplate.pm');
+    my $t = Text::MicroTemplate->new(
+        escape_func => 'NanoA::escape_html',
+    );
     $t->parse(NanoA::read_file($path));
-    $t->build();
     my $code = $t->code();
     my $global = ''; # for now $t->global();
 #intentially adds space before 'use', so that it would not be erased by tools/concat.pl

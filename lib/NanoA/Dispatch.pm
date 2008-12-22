@@ -35,7 +35,7 @@ sub dispatch {
     $handler->run_hooks('prerun');
     my $body = $handler->run();
     $body = $$body
-        if ref $body eq 'MENTA::Template::RawString';
+        if ref $body eq 'Text::MicroTemplate::EncodedString';
     $handler->run_hooks('postrun', \$body);
     
     $handler->print_header();
